@@ -1,0 +1,43 @@
+﻿name: Release .NET Program
+
+on:
+  push:
+    branches:
+      - release
+        
+permissions:
+  contents: write
+  
+jobs:
+  get-version:        
+    name: Getting version from .csproj
+    runs-on: self-hosted
+    outputs: 
+      version: ${{ steps.get-proj-version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: '0'
+          token: '${{ github.token }}'
+      - name: Get Version Number
+        id: get-proj-version
+        uses: Raycynix/get-csproj-version-action@v1
+    
+  draft:
+    name: Setting up draft release
+    runs-on: self-hosted
+    needs: get-version
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Create Draft Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.get-version.outputs.version }}
+          release_name: Release ${{ needs.get-version.outputs.version }}
+          draft: true
+          prerelease: false

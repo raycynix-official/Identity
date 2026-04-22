@@ -1,0 +1,35 @@
+services:
+#  auth-service:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: raycynix-auth-service
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#    environment:
+#      ASPNETCORE_ENVIRONMENT: Development
+#    ports:
+#      - "5000:5000"
+#    restart: unless-stopped
+
+  postgres:
+    image: postgres:17
+    container_name: raycynix-auth-postgres
+    environment:
+      POSTGRES_DB: raycynix_auth_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d raycynix_auth_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres-auth-data:
