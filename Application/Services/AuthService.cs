@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Authentication;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -46,16 +47,22 @@ public class AuthService(
 
     public async Task<AuthResponse> LoginAsync(AuthRequest request, CancellationToken cancellationToken = default)
     {
-        if (request.Email is null || request.UserName is null) throw new ArgumentException("Login is null");
-
-        var user = await userManager.FindByEmailAsync(request.Email);
-        if (user is null)
+        var user = new User();
+        if (request.Email is not null)
         {
-            logger.LogError(
-                "User trying to login with email:{Email} not found, trying to login with username:{UserName}",
-                request.Email,
-                request.UserName);
+            user = await userManager.FindByEmailAsync(request.Email);
+            if (user is null)
+            {
+                logger.LogError(
+                    "User trying to login with email:{Email} not found, trying to login with username:{UserName}",
+                    request.Email,
+                    request.UserName);
+                throw new NotFoundException("User not found");
+            }
+        }
 
+        if (request.UserName is not null)
+        {
             user = await userManager.FindByNameAsync(request.UserName);
             if (user is null)
             {
@@ -76,6 +83,7 @@ public class AuthService(
         return await GenerateTokenAsync(user);
     }
 
+    [Authorize]
     public async Task LogoutAsync(ClaimsPrincipal userClaims, CancellationToken cancellationToken = default)
     {
         var userId = userClaims.FindFirstValue(JwtRegisteredClaimNames.Sub)
@@ -115,5 +123,6 @@ public class AuthService(
         return new AuthResponse(new JwtSecurityTokenHandler().WriteToken(token), token.ValidTo);
     }
 
-    private async Task<string?> GetJwtSecretAsync() => await secretResolver.GetSecretAsync("SecurityConfiguration:Jwt:Secret");
+    private async Task<string?> GetJwtSecretAsync() =>
+        await secretResolver.GetSecretAsync("SecurityConfiguration:Jwt:Secret");
 }

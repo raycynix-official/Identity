@@ -62,8 +62,8 @@
       <PackageReference Include="Raycynix.Extensions.Database.AspNetCore" Version="1.0.1" />
       <PackageReference Include="Raycynix.Extensions.Database.PostgreSql" Version="1.0.1" />
       <PackageReference Include="Raycynix.Extensions.Exceptions.AspNetCore" Version="1.0.1" />
-      <PackageReference Include="Raycynix.Extensions.Secrets" Version="1.0.1" />
-      <PackageReference Include="Raycynix.Extensions.Security.AspNetCore" Version="1.0.1" />
+      <PackageReference Include="Raycynix.Extensions.Secrets" Version="1.1.0" />
+      <PackageReference Include="Raycynix.Extensions.Security.AspNetCore" Version="1.0.2" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
     </ItemGroup>
 
