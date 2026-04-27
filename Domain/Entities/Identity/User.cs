@@ -8,7 +8,7 @@
 using Microsoft.AspNetCore.Identity;
 using Raycynix.Services.AuthService.Application.Models;
 
-namespace Raycynix.Services.AuthService.Domain.Entities;
+namespace Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 public sealed class User : IdentityUser
 {
@@ -27,4 +27,6 @@ public sealed class User : IdentityUser
     /// The date and time when the user was created. At UTC.
     /// </summary>
     public DateTime CreatedAt { get; set; }
+    
+    public DateTime? LastLoginAt { get; set; }
 }

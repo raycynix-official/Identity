@@ -8,9 +8,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Raycynix.Extensions.Database.Implementations;
-using Raycynix.Services.AuthService.Domain.Entities;
+using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
-namespace Raycynix.Services.AuthService.Infrastructure.Configurators;
+namespace Raycynix.Services.AuthService.Infrastructure.Configurators.Identity;
 
 public class UserConfigurator : GenericConfigurator<User>
 {
@@ -40,5 +40,7 @@ public class UserConfigurator : GenericConfigurator<User>
 
         builder.Property(user => user.CreatedAt)
             .IsRequired();
+        
+        builder.Property(user => user.LastLoginAt).IsRequired(false);
     }
 }

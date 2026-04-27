@@ -17,7 +17,7 @@ using Raycynix.Extensions.Exceptions;
 using Raycynix.Extensions.Logging;
 using Raycynix.Extensions.Secrets;
 using Raycynix.Services.AuthService.Application.Interfaces;
-using Raycynix.Services.AuthService.Domain.Entities;
+using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Web.Extensions;
 

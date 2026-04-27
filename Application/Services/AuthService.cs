@@ -9,7 +9,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Authentication;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -18,7 +17,7 @@ using Raycynix.Extensions.Security.Abstractions.Interfaces;
 using Raycynix.Extensions.Security.Configurations;
 using Raycynix.Services.AuthService.Application.Interfaces;
 using Raycynix.Services.AuthService.Application.Models;
-using Raycynix.Services.AuthService.Domain.Entities;
+using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Application.Services;
 
@@ -39,9 +38,10 @@ public class AuthService(
             logger.LogError(
                 "User trying to register with username:{UserName} and email:{Email}.\nGet`s errors:{Errors}",
                 request.UserName, request.Email, errors);
-            throw new AuthenticationException(errors);
-        }
 
+            throw new ConflictException(errors);
+        }
+        
         return await GenerateTokenAsync(user);
     }
 
@@ -58,7 +58,7 @@ public class AuthService(
                     request.Email,
                     request.UserName);
                 throw new NotFoundException("User not found");
-            }
+            }        
         }
 
         if (request.UserName is not null)
@@ -79,11 +79,17 @@ public class AuthService(
                 request.UserName);
             throw new UnauthorizedAccessException("Invalid password");
         }
+        
+        await signInManager.SignInAsync(user, false);
+        
+        await userManager.ResetAccessFailedCountAsync(user);
+        await userManager.UpdateSecurityStampAsync(user);
+        user.LastLoginAt = DateTime.UtcNow;
+        await userManager.UpdateAsync(user);
 
         return await GenerateTokenAsync(user);
     }
 
-    [Authorize]
     public async Task LogoutAsync(ClaimsPrincipal userClaims, CancellationToken cancellationToken = default)
     {
         var userId = userClaims.FindFirstValue(JwtRegisteredClaimNames.Sub)
@@ -108,7 +114,7 @@ public class AuthService(
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.Name, user.UserName!),
+            new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName!),
             new Claim(JwtRegisteredClaimNames.Email, user.Email!)
         };
 
@@ -119,7 +125,7 @@ public class AuthService(
             expires: DateTime.UtcNow.Add(jwtSettings.Value.RefreshTokenLifetime),
             signingCredentials: credits
         );
-
+        
         return new AuthResponse(new JwtSecurityTokenHandler().WriteToken(token), token.ValidTo);
     }
 

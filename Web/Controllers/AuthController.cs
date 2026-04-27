@@ -6,17 +6,15 @@
 //     http://www.apache.org/licenses/LICENSE-2.0
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Raycynix.Services.AuthService.Application.Interfaces;
 using Raycynix.Services.AuthService.Application.Models;
-using Raycynix.Services.AuthService.Domain.Entities;
 
 namespace Raycynix.Services.AuthService.Web.Controllers;
 
 [ApiController]
 [Route("api/v1/auth")]
-public class AuthController(UserManager<User> userManager, IAuthService authService) : ControllerBase
+public class AuthController(IAuthService authService) : ControllerBase
 {
     
     [HttpPost("registration")]

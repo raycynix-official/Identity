@@ -43,7 +43,7 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings!.Issuer,
-        ValidAudience = jwtSettings.Audience
+        ValidAudience = jwtSettings.Audience,
     };
 });
 
