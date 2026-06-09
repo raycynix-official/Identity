@@ -7,4 +7,6 @@
 
 namespace Raycynix.Services.AuthService.Application.Models;
 
-public record AuthRequest(string? UserName, string? Email, string Password);
+public record RegisterRequest(string UserName, string Email, string Password);
+
+public record LoginRequest(string Login, string Password);

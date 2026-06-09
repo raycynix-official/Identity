@@ -7,4 +7,6 @@
 
 namespace Raycynix.Services.AuthService.Application.Models;
 
-public record AuthResponse(string Token, DateTime Expires);
+public record AuthResponse(string AccessToken, DateTime AccessTokenExpires);
+
+public record AuthResult(string AccessToken, DateTime AccessTokenExpires, string RefreshToken);

@@ -5,6 +5,7 @@
 // 
 //     http://www.apache.org/licenses/LICENSE-2.0
 
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Raycynix.Extensions.Configuration.AspNetCore;
@@ -27,25 +28,34 @@ builder.Services.AddSwaggerGen(options => { options.SwaggerDoc("v1", new() { Tit
 
 builder.Services.AddControllers();
 
-var jwtSettings = builder.Configuration.GetSection("SecurityConfiguration").Get<JwtConfiguration>();
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
+var jwtSettings = builder.Configuration.GetSection("SecurityConfiguration:Jwt").Get<JwtConfiguration>();
+if (jwtSettings is null) throw new InvalidOperationException("JWT Configuration not found");
+
+var jwtSecret = builder.Configuration["SecurityConfiguration:Jwt:Secret"];
+if (string.IsNullOrWhiteSpace(jwtSecret)) throw new InvalidOperationException("JWT Secret key not found");
+
+builder.Services
+    .AddAuthentication(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings!.Issuer,
-        ValidAudience = jwtSettings.Audience,
-    };
-});
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = jwtSettings.RequireHttpsMetadata;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+            ClockSkew = jwtSettings.ClockSkew
+        };
+    });
 
 var app = builder.Build();
 
@@ -59,6 +69,8 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    app.MapGet("/", () => Results.Redirect("/swagger"));
 }
 
 app.UseHttpsRedirection();

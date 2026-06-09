@@ -6,12 +6,9 @@
 //     http://www.apache.org/licenses/LICENSE-2.0
 
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 using Raycynix.Extensions.Common.Context;
-using Raycynix.Extensions.Database;
-using Raycynix.Extensions.Database.Configurations;
-using Raycynix.Extensions.Database.Implementations;
+using Raycynix.Extensions.Database.Abstractions.Configurations;
+using Raycynix.Extensions.Database.AspNetCore.Identity;
 using Raycynix.Extensions.Database.PostgreSql;
 using Raycynix.Extensions.Exceptions;
 using Raycynix.Extensions.Logging;
@@ -28,19 +25,26 @@ public static class DependencyInjection
         public IServiceCollection AddServices(IConfiguration configuration)
         {
             services.AddRaycynixExceptions();
-            
+
             services.AddOptions<DatabaseConfiguration>()
-                .Bind(configuration.GetSection("DatabaseConfiguration"));
+                .Bind(configuration.GetSection(nameof(DatabaseConfiguration)));
 
             services.AddScoped<IOperationContext, OperationContext>();
 
             services.AddRaycynixLogging();
 
-            services.AddRaycynixDatabase(configuration).AddPostgreSql();
+            services
+                .AddRaycynixIdentityDatabase<
+                    RaycynixIdentityDatabaseContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim,
+                        UserToken>
+                >(configuration).AddPostgreSql();
             services.AddRaycynixSecrets();
 
-            services.AddIdentity<User, IdentityRole>()
-                .AddEntityFrameworkStores<DatabaseContext>()
+            services.AddIdentity<User, Role>()
+                .AddEntityFrameworkStores<
+                    RaycynixIdentityDatabaseContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim,
+                        UserToken>
+                >()
                 .AddDefaultTokenProviders();
 
             services.AddScoped<IAuthService, Application.Services.AuthService>();

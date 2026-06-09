@@ -13,7 +13,7 @@ namespace Raycynix.Services.AuthService.Application.Interfaces;
 
 public interface IAuthService
 {
-    Task<AuthResponse> RegisterAsync(AuthRequest request, CancellationToken cancellationToken = default);
-    Task<AuthResponse> LoginAsync(AuthRequest request, CancellationToken cancellationToken = default);
-    Task LogoutAsync(ClaimsPrincipal claims, CancellationToken cancellationToken = default);
+    Task<AuthResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
+    Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+    Task LogoutAsync(ClaimsPrincipal claims, string? refreshToken, CancellationToken cancellationToken = default);
 }

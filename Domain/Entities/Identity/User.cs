@@ -10,23 +10,23 @@ using Raycynix.Services.AuthService.Application.Models;
 
 namespace Raycynix.Services.AuthService.Domain.Entities.Identity;
 
-public sealed class User : IdentityUser
+public sealed class User : IdentityUser<Guid>
 {
     public User()
     {
+        CreatedAt = DateTime.UtcNow;
     }
 
-    public User(AuthRequest request)
+    public User(RegisterRequest request)
     {
         UserName = request.UserName;
         Email = request.Email;
         CreatedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// The date and time when the user was created. At UTC.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
-    
+    public DateTime CreatedAt { get; init; }
+
     public DateTime? LastLoginAt { get; set; }
+
+    public List<UserRefreshToken>? RefreshTokens { get; set; } = null;
 }

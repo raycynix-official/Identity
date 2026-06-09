@@ -7,6 +7,8 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Raycynix.Extensions.Security.Configurations;
 using Raycynix.Services.AuthService.Application.Interfaces;
 using Raycynix.Services.AuthService.Application.Models;
 
@@ -14,27 +16,67 @@ namespace Raycynix.Services.AuthService.Web.Controllers;
 
 [ApiController]
 [Route("api/v1/auth")]
-public class AuthController(IAuthService authService) : ControllerBase
+public class AuthController(
+    IAuthService authService,
+    IOptions<JwtConfiguration> jwtSettings
+) : ControllerBase
 {
-    
     [HttpPost("registration")]
-    public async Task<IActionResult> RegisterAsync([FromBody] AuthRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request,
+        CancellationToken cancellationToken)
     {
-        var user = await authService.RegisterAsync(request, cancellationToken);
-        return Ok(user);
+        var result = await authService.RegisterAsync(request, cancellationToken);
+
+        Response.Cookies.Append("refresh_token", result.RefreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.Add(jwtSettings.Value.RefreshTokenLifetime)
+        });
+
+        return Ok(new AuthResponse(
+                result.AccessToken,
+                result.AccessTokenExpires
+            )
+        );
     }
-    
+
     [HttpPost("login")]
-    public async Task<IActionResult> LoginAsync([FromBody] AuthRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
-        var user = await authService.LoginAsync(request, cancellationToken);
-        return Ok(user);
+        var result = await authService.LoginAsync(request, cancellationToken);
+
+        Response.Cookies.Append("refresh_token", result.RefreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.Add(jwtSettings.Value.RefreshTokenLifetime)
+        });
+
+        return Ok(new AuthResponse(
+                result.AccessToken,
+                result.AccessTokenExpires
+            )
+        );
     }
-    
+
     [Authorize]
     [HttpPost("logout")]
-    public async Task LogoutAsync(CancellationToken cancellationToken)
+    public async Task<IActionResult> LogoutAsync(CancellationToken cancellationToken)
     {
-        await authService.LogoutAsync(User, cancellationToken);
+        var refreshToken = Request.Cookies["refresh_token"];
+
+        await authService.LogoutAsync(User, refreshToken, cancellationToken);
+
+        Response.Cookies.Delete("refresh_token", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict
+        });
+
+        return NoContent();
     }
 }
