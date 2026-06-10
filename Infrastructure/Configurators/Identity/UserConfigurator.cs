@@ -6,41 +6,43 @@
 //     http://www.apache.org/licenses/LICENSE-2.0
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Raycynix.Extensions.Database.Abstractions.Attributes;
 using Raycynix.Extensions.Database.Implementations;
 using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Infrastructure.Configurators.Identity;
 
-public class UserConfigurator : GenericConfigurator<User>
+[DatabaseTable("users")]
+public sealed class UserConfigurator : GenericConfigurator<User>
 {
     public override Type[] DependsOn => [];
 
-    public void Configure(EntityTypeBuilder<User> builder)
+    public override void Configure(ModelBuilder modelBuilder)
     {
-        builder.ToTable("users");
+        base.Configure(modelBuilder);
+        var entity = modelBuilder.Entity<User>();
+        
+        entity.HasKey(user => user.Id);
 
-        builder.HasKey(user => user.Id);
-
-        builder.HasIndex(user => user.UserName)
+        entity.HasIndex(user => user.UserName)
             .IsUnique();
-        builder.Property(user => user.UserName)
+        entity.Property(user => user.UserName)
             .HasMaxLength(64)
             .IsRequired();
 
-        builder.HasIndex(user => user.Email)
+        entity.HasIndex(user => user.Email)
             .IsUnique();
-        builder.Property(user => user.Email)
+        entity.Property(user => user.Email)
             .HasMaxLength(256)
             .IsRequired();
 
-        builder.Property(user => user.PasswordHash)
+        entity.Property(user => user.PasswordHash)
             .HasMaxLength(512)
             .IsRequired();
 
-        builder.Property(user => user.CreatedAt)
+        entity.Property(user => user.CreatedAt)
             .IsRequired();
         
-        builder.Property(user => user.LastLoginAt).IsRequired(false);
+        entity.Property(user => user.LastLoginAt).IsRequired(false);
     }
 }

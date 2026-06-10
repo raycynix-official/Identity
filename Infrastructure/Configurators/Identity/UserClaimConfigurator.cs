@@ -12,8 +12,8 @@ using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Infrastructure.Configurators.Identity;
 
-[DatabaseTable("user_refresh_tokens")]
-public class UserRefreshTokenConfigurator : GenericConfigurator<UserRefreshToken>
+[DatabaseTable("user_claims")]
+public class UserClaimConfigurator : GenericConfigurator<UserClaim>
 {
     public override Type[] DependsOn => [typeof(User)];
 
@@ -21,7 +21,7 @@ public class UserRefreshTokenConfigurator : GenericConfigurator<UserRefreshToken
     {
         base.Configure(modelBuilder);
 
-        var entity = modelBuilder.Entity<UserRefreshToken>();
+        var entity = modelBuilder.Entity<UserClaim>();
 
         entity.HasKey(x => x.Id);
         entity.HasIndex(x => x.Id).IsUnique();
@@ -30,19 +30,8 @@ public class UserRefreshTokenConfigurator : GenericConfigurator<UserRefreshToken
         entity.Property(x => x.UserId).IsRequired();
         entity
             .HasOne(x => x.User)
-            .WithMany(u => u.RefreshTokens)
+            .WithMany(x => x.UserClaims)
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-        
-        entity.HasIndex(x => x.TokenHash).IsUnique();
-        entity.Property(x => x.TokenHash).IsRequired();
-        
-        entity.Property(x => x.CreatedAt).IsRequired();
-        entity.Property(x => x.ExpiresAt).IsRequired();
-        
-        entity.Property(x => x.RevokedAt).IsRequired(false);
-        entity.Property(x => x.ReplacedByTokenHash).IsRequired(false);
-
-        entity.Ignore(x => x.IsActive);
     }
 }

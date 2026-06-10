@@ -5,12 +5,12 @@
 // 
 //     http://www.apache.org/licenses/LICENSE-2.0
 
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Raycynix.Extensions.Security.Configurations;
 using Raycynix.Services.AuthService.Application.Interfaces;
 using Raycynix.Services.AuthService.Application.Models;
+using Raycynix.Services.AuthService.Web.Extensions;
 
 namespace Raycynix.Services.AuthService.Web.Controllers;
 
@@ -27,13 +27,7 @@ public class AuthController(
     {
         var result = await authService.RegisterAsync(request, cancellationToken);
 
-        Response.Cookies.Append("refresh_token", result.RefreshToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTimeOffset.UtcNow.Add(jwtSettings.Value.RefreshTokenLifetime)
-        });
+        Response.Cookies.AppendRefreshToken(result.RefreshToken, jwtSettings.Value.RefreshTokenLifetime);
 
         return Ok(new AuthResponse(
                 result.AccessToken,
@@ -47,13 +41,7 @@ public class AuthController(
     {
         var result = await authService.LoginAsync(request, cancellationToken);
 
-        Response.Cookies.Append("refresh_token", result.RefreshToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTimeOffset.UtcNow.Add(jwtSettings.Value.RefreshTokenLifetime)
-        });
+        Response.Cookies.AppendRefreshToken(result.RefreshToken, jwtSettings.Value.RefreshTokenLifetime);
 
         return Ok(new AuthResponse(
                 result.AccessToken,
@@ -62,21 +50,27 @@ public class AuthController(
         );
     }
 
-    [Authorize]
     [HttpPost("logout")]
     public async Task<IActionResult> LogoutAsync(CancellationToken cancellationToken)
     {
-        var refreshToken = Request.Cookies["refresh_token"];
+        var refreshToken = Request.Cookies[RefreshTokenCookieExtensions.RefreshTokenCookieName];
 
-        await authService.LogoutAsync(User, refreshToken, cancellationToken);
+        await authService.LogoutAsync(refreshToken, cancellationToken);
 
-        Response.Cookies.Delete("refresh_token", new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict
-        });
+        Response.Cookies.DeleteRefreshToken();
 
         return NoContent();
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshTokenAsync(CancellationToken cancellationToken)
+    {
+        var refreshToken = Request.Cookies[RefreshTokenCookieExtensions.RefreshTokenCookieName];
+
+        var result = await authService.RefreshTokenAsync(refreshToken, cancellationToken);
+
+        Response.Cookies.AppendRefreshToken(result.RefreshToken, jwtSettings.Value.RefreshTokenLifetime);
+        
+        return Ok(new AuthResponse(result.AccessToken, result.AccessTokenExpires));
     }
 }

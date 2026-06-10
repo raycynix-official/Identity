@@ -9,17 +9,17 @@ namespace Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 public sealed class UserRefreshToken
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; init; } = Guid.NewGuid();
 
     public Guid UserId { get; set; }
     public User User { get; set; } = null!;
 
     public string TokenHash { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset ExpiresAt { get; set; }
 
-    public DateTime? RevokedAt { get; set; }
+    public DateTimeOffset? RevokedAt { get; set; }
     public string? ReplacedByTokenHash { get; set; }
 
     public bool IsActive => RevokedAt is null && ExpiresAt > DateTimeOffset.UtcNow;

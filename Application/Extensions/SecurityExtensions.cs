@@ -9,11 +9,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Raycynix.Extensions.Security.Abstractions.Interfaces;
 using Raycynix.Extensions.Security.Configurations;
-using Raycynix.Services.AuthService.Application.Models;
 using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Application.Extensions;
@@ -64,6 +62,19 @@ public static class SecurityExtensions
 
             return token;
         }
+    }
+
+    public static UserRefreshToken GenerateUserRefreshToken(Guid userId, string refreshToken,
+        JwtConfiguration jwtSettings)
+    {
+        var token = new UserRefreshToken
+        {
+            UserId = userId,
+            TokenHash = HashRefreshToken(refreshToken),
+            ExpiresAt = DateTimeOffset.UtcNow.Add(jwtSettings.RefreshTokenLifetime)
+        };
+
+        return token;
     }
 
     public static string TokenString(this JwtSecurityToken token)

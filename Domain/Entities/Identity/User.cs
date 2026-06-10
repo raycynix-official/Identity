@@ -14,19 +14,24 @@ public sealed class User : IdentityUser<Guid>
 {
     public User()
     {
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = DateTimeOffset.UtcNow;
     }
 
     public User(RegisterRequest request)
     {
         UserName = request.UserName;
         Email = request.Email;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = DateTimeOffset.UtcNow;
     }
 
-    public DateTime CreatedAt { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
 
-    public DateTime? LastLoginAt { get; set; }
+    public DateTimeOffset? LastLoginAt { get; set; }
 
-    public List<UserRefreshToken>? RefreshTokens { get; set; } = null;
+    public List<UserRefreshToken> RefreshTokens { get; set; } = [];
+
+    public List<UserRole> UserRoles { get; set; } = [];
+    public List<UserClaim> UserClaims { get; set; } = [];
+    public List<UserLogin> UserLogins { get; set; } = [];
+    public List<UserToken> UserTokens { get; set; } = [];
 }

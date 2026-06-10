@@ -5,8 +5,28 @@
 // 
 //     http://www.apache.org/licenses/LICENSE-2.0
 
+using System.ComponentModel.DataAnnotations;
+
 namespace Raycynix.Services.AuthService.Application.Models;
 
-public record RegisterRequest(string UserName, string Email, string Password);
+public record RegisterRequest(
+    [Required]
+    [RegularExpression(@".*\S.*", ErrorMessage = "Username is required.")]
+    string UserName,
+    
+    [Required]
+    [EmailAddress]
+    string Email,
+    
+    [Required]
+    [RegularExpression(@".*\S.*", ErrorMessage = "Password is required.")]
+    string Password);
 
-public record LoginRequest(string Login, string Password);
+public record LoginRequest(
+    [Required]
+    [RegularExpression(@".*\S.*", ErrorMessage = "Login is required.")]
+    string Login,
+    
+    [Required]
+    [RegularExpression(@".*\S.*", ErrorMessage = "Password is required.")]
+    string Password);

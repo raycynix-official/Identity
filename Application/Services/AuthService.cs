@@ -5,8 +5,6 @@
 // 
 //     http://www.apache.org/licenses/LICENSE-2.0
 
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -26,18 +24,15 @@ public class AuthService(
     SignInManager<User> signInManager,
     IOptions<JwtConfiguration> jwtSettings,
     ISecretResolver secretResolver,
-    RaycynixIdentityDatabaseContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim, UserToken> databaseContext,
+    RaycynixIdentityDatabaseContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>
+        databaseContext,
     Raycynix.Extensions.Logging.Abstractions.ILogger<AuthService> logger) : IAuthService
 {
     public async Task<AuthResult> RegisterAsync(RegisterRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(request.UserName) || string.IsNullOrWhiteSpace(request.Email) ||
-            string.IsNullOrWhiteSpace(request.Password))
-        {
-            logger.LogError("Register Failed: username, email or password is null or empty");
-            throw new ArgumentNullException();
-        }
+        ArgumentNullException.ThrowIfNull(request);
+
         var user = new User(request);
         var result = await userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
@@ -56,17 +51,14 @@ public class AuthService(
         var userRefreshToken = user.GenerateUserRefreshToken(refreshToken, jwtSettings.Value);
         await databaseContext.AddAsync(userRefreshToken, cancellationToken);
         await databaseContext.SaveChangesAsync(cancellationToken);
-        
+
         return new AuthResult(accessToken.TokenString(), accessToken.ValidTo, refreshToken);
     }
 
     public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(request.Login) || string.IsNullOrWhiteSpace(request.Password))
-        {
-            logger.LogError("Login Failed: login or password is null or empty");
-            throw new ArgumentNullException();
-        }
+        ArgumentNullException.ThrowIfNull(request);
+
         var login = request.Login.Trim();
 
         var user = login.Contains('@')
@@ -75,17 +67,17 @@ public class AuthService(
         if (user is null)
         {
             logger.LogError("Login Failed: user with login:{login} not found", login);
-            throw new UnauthorizedAccessException("Invalid login or password");
+            throw new UnauthorizedException("Invalid login or password");
         }
 
         var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
         if (!result.Succeeded)
         {
             logger.LogWarning("Login Failed: invalid Password for user:{userId}", user.Id);
-            throw new UnauthorizedAccessException("Invalid login or password");
+            throw new UnauthorizedException("Invalid login or password");
         }
 
-        user.LastLoginAt = DateTime.UtcNow;
+        user.LastLoginAt = DateTimeOffset.UtcNow;
         await userManager.ResetAccessFailedCountAsync(user);
         await userManager.UpdateAsync(user);
 
@@ -99,39 +91,81 @@ public class AuthService(
         return new AuthResult(accessToken.TokenString(), accessToken.ValidTo, refreshToken);
     }
 
-    public async Task LogoutAsync(ClaimsPrincipal userClaims, string? refreshToken, CancellationToken cancellationToken = default)
+    public async Task LogoutAsync(string? refreshToken,
+        CancellationToken cancellationToken = default)
     {
-        var userIdValue = userClaims.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                     ?? userClaims.FindFirstValue(ClaimTypes.Name);
-        if (!Guid.TryParse(userIdValue, out var userId))
-        {
-            logger.LogWarning("Logout failed: user ID not found in claims.");
-            throw new UnauthorizedAccessException("User ID not found in token");
-        }
-
         if (string.IsNullOrWhiteSpace(refreshToken))
         {
-            logger.LogWarning("Logout failed: refresh token cookie is missing for user:{UserId}", userId);
+            logger.LogWarning("Logout failed: refresh token cookie is missing");
             return;
         }
 
         var tokenHash = SecurityExtensions.HashRefreshToken(refreshToken);
-
+        
         var userRefreshToken = await databaseContext.Set<UserRefreshToken>()
             .FirstOrDefaultAsync(
-                token => token.UserId == userId &&
-                         token.TokenHash == tokenHash &&
-                         token.RevokedAt == null,
+                token => token.TokenHash == tokenHash &&
+                         token.RevokedAt == null &&
+                         token.ExpiresAt > DateTimeOffset.UtcNow,
                 cancellationToken);
-
         if (userRefreshToken is null)
         {
-            logger.LogWarning("Logout failed: refresh token not found for user:{UserId}", userId);
+            logger.LogWarning("Logout failed: refresh token not found");
             return;
         }
 
-        userRefreshToken.RevokedAt = DateTime.UtcNow;
+        userRefreshToken.RevokedAt = DateTimeOffset.UtcNow;
 
         await databaseContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<AuthResult> RefreshTokenAsync(string? refreshToken, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            logger.LogWarning("Refresh token failed: refresh token is null or empty");
+            throw new UnauthorizedException("Refresh token is null or empty");
+        }
+
+        var tokenHash = SecurityExtensions.HashRefreshToken(refreshToken);
+        if (string.IsNullOrWhiteSpace(tokenHash))
+        {
+            logger.LogWarning("Refresh token failed: refresh token hash is null or empty");
+            throw new UnauthorizedException("Refresh token hash is null or empty");
+        }
+
+        var userRefreshToken = await databaseContext.Set<UserRefreshToken>()
+            .FirstOrDefaultAsync(
+                token => token.TokenHash == tokenHash &&
+                         token.RevokedAt == null &&
+                         token.ExpiresAt > DateTimeOffset.UtcNow,
+                cancellationToken);
+        if (userRefreshToken is null)
+        {
+            logger.LogWarning("Refresh token failed: refresh token not found");
+            throw new UnauthorizedException("Refresh token not found");
+        }
+
+        var user = await databaseContext.Set<User>()
+            .SingleOrDefaultAsync(u => u.Id == userRefreshToken.UserId, cancellationToken: cancellationToken);
+        if (user is null)
+        {
+            logger.LogWarning("Refresh token failed: user by id:{userId} not found in database",
+                userRefreshToken.UserId);
+            throw new UnauthorizedException("Refresh token not found");
+        }
+
+        var accessToken = await user.GenerateTokenAsync(secretResolver, jwtSettings.Value);
+        var newRefreshToken = SecurityExtensions.GenerateRefreshToken();
+
+        var newUserRefreshToken = user.GenerateUserRefreshToken(newRefreshToken, jwtSettings.Value);
+        await databaseContext.AddAsync(newUserRefreshToken, cancellationToken);
+        
+        userRefreshToken.RevokedAt = DateTimeOffset.UtcNow;
+        userRefreshToken.ReplacedByTokenHash = newUserRefreshToken.TokenHash;
+        databaseContext.Update(userRefreshToken);
+        await databaseContext.SaveChangesAsync(cancellationToken);
+
+        return new AuthResult(accessToken.TokenString(), accessToken.ValidTo, newRefreshToken);
     }
 }

@@ -5,9 +5,7 @@
 // 
 //     http://www.apache.org/licenses/LICENSE-2.0
 
-using System.Security.Claims;
 using Raycynix.Services.AuthService.Application.Models;
-using Raycynix.Services.AuthService.Domain.Entities;
 
 namespace Raycynix.Services.AuthService.Application.Interfaces;
 
@@ -15,5 +13,6 @@ public interface IAuthService
 {
     Task<AuthResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
     Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
-    Task LogoutAsync(ClaimsPrincipal claims, string? refreshToken, CancellationToken cancellationToken = default);
+    Task LogoutAsync(string? refreshToken, CancellationToken cancellationToken = default);
+    Task<AuthResult> RefreshTokenAsync(string? refreshToken, CancellationToken cancellationToken = default);
 }
