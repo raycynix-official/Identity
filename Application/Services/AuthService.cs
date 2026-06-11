@@ -60,7 +60,8 @@ public class AuthService(
     }
 
     /// <inheritdoc />
-    public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+    public async Task<AuthResult> LoginAsync(LoginRequest request, string? requestRefreshToken = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -90,6 +91,28 @@ public class AuthService(
         var refreshToken = SecurityExtensions.GenerateRefreshToken();
 
         var userRefreshToken = user.GenerateUserRefreshToken(refreshToken, jwtSettings.Value);
+
+        if (requestRefreshToken is not null)
+        {
+            logger.LogInformation("Refresh token is not null. Checking for old refresh token");
+            var requestRefreshTokenHash = SecurityExtensions.HashRefreshToken(requestRefreshToken);
+            
+            var oldUserRefreshToken = await databaseContext.Set<UserRefreshToken>()
+                .FirstOrDefaultAsync(
+                    token => token.UserId == user.Id &&
+                             token.TokenHash == requestRefreshTokenHash &&
+                             token.RevokedAt == null &&
+                             token.ExpiresAt > DateTimeOffset.UtcNow,
+                    cancellationToken);
+            if (oldUserRefreshToken is not null)
+            {
+                logger.LogInformation("Old refresh token found. Revoking it");
+                oldUserRefreshToken.RevokedAt = DateTimeOffset.UtcNow;
+                oldUserRefreshToken.ReplacedByTokenHash = userRefreshToken.TokenHash;
+                databaseContext.Update(oldUserRefreshToken);
+            }
+        }
+
         await databaseContext.AddAsync(userRefreshToken, cancellationToken);
         await databaseContext.SaveChangesAsync(cancellationToken);
 
@@ -107,7 +130,7 @@ public class AuthService(
         }
 
         var tokenHash = SecurityExtensions.HashRefreshToken(refreshToken);
-        
+
         var userRefreshToken = await databaseContext.Set<UserRefreshToken>()
             .FirstOrDefaultAsync(
                 token => token.TokenHash == tokenHash &&
@@ -167,7 +190,7 @@ public class AuthService(
 
         var newUserRefreshToken = user.GenerateUserRefreshToken(newRefreshToken, jwtSettings.Value);
         await databaseContext.AddAsync(newUserRefreshToken, cancellationToken);
-        
+
         userRefreshToken.RevokedAt = DateTimeOffset.UtcNow;
         userRefreshToken.ReplacedByTokenHash = newUserRefreshToken.TokenHash;
         databaseContext.Update(userRefreshToken);

@@ -7,14 +7,16 @@
 
 using Microsoft.AspNetCore.Identity;
 using Raycynix.Extensions.Common.Context;
-using Raycynix.Extensions.Database.Abstractions.Configurations;
+using Raycynix.Extensions.Configuration;
 using Raycynix.Extensions.Database.AspNetCore.Identity;
 using Raycynix.Extensions.Database.PostgreSql;
 using Raycynix.Extensions.Exceptions;
 using Raycynix.Extensions.Logging;
 using Raycynix.Extensions.Secrets;
 using Raycynix.Services.AuthService.Application.Interfaces;
+using Raycynix.Services.AuthService.Domain.Configurations;
 using Raycynix.Services.AuthService.Domain.Entities.Identity;
+using Raycynix.Services.AuthService.Web.Background;
 
 namespace Raycynix.Services.AuthService.Web.Extensions;
 
@@ -34,8 +36,12 @@ public static class DependencyInjection
         {
             services.AddRaycynixExceptions();
 
-            services.AddOptions<DatabaseConfiguration>()
-                .Bind(configuration.GetSection(nameof(DatabaseConfiguration)));
+            services.AddRaycynixConfiguration<BackgroundServicesConfiguration>(
+                configuration,
+                requireSection: true);
+            services
+                .AddRaycynixConfigurationValidator<BackgroundServicesConfiguration,
+                    BackgroundServicesConfigurationValidator>();
 
             services.AddScoped<IOperationContext, OperationContext>();
 
@@ -57,6 +63,14 @@ public static class DependencyInjection
 
             services.AddScoped<IAuthService, Application.Services.AuthService>();
 
+            var backgroundServicesConfiguration = configuration.GetSection(nameof(BackgroundServicesConfiguration))
+                .Get<BackgroundServicesConfiguration>();
+            if (backgroundServicesConfiguration is null)
+                throw new InvalidOperationException("Background services configuration not found");
+
+            if (!backgroundServicesConfiguration.RefreshTokensCleanupEnabled) return services;
+
+            services.AddHostedService<RefreshTokensCleanupBackground>();
 
             return services;
         }

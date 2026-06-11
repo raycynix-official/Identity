@@ -1,12 +1,12 @@
 # Raycynix.Services.AuthService
 
 ![.NET Version](https://img.shields.io/badge/.NET-10.0-blue.svg)
-![Version](https://img.shields.io/badge/version-0.2.0-green.svg)
+![Version](https://img.shields.io/badge/version-0.2.1-green.svg)
 ![TeamCity build status](https://ci.raycynix.com/app/rest/builds/buildType:id:TMP_DotNet_GitHubDeploy/statusIcon.svg)
 
 Auth Service for the Raycynix ecosystem, built with ASP.NET Core, ASP.NET Core Identity, PostgreSQL, and .NET 10.
 
-The service provides user registration, login, logout, and refresh-token rotation. Access tokens are returned in API responses, while refresh tokens are stored in secure HTTP-only cookies and persisted as SHA-256 hashes.
+The service provides user registration, login, logout, refresh-token rotation, and expired refresh-token cleanup. Access tokens are returned in API responses, while refresh tokens are stored in secure HTTP-only cookies and persisted as SHA-256 hashes.
 
 ## Getting Started
 
@@ -84,7 +84,21 @@ Swagger UI is available at `/swagger` in the Development environment.
 * Refresh tokens are generated from cryptographically random bytes.
 * Refresh tokens are stored in the database as SHA-256 hashes.
 * Refresh-token cookies are `HttpOnly`, `Secure`, and `SameSite=Strict`.
+* Login reads the existing refresh-token cookie, revokes the active token for the authenticated user, and links it to the newly issued refresh token.
 * Refreshing a token revokes the previous refresh token and links it to the replacement token hash.
+
+## Background Services
+
+Expired refresh tokens are removed by `RefreshTokensCleanupBackground`. The service is controlled through `BackgroundServicesConfiguration` and validated through Raycynix typed configuration.
+
+```json
+"BackgroundServicesConfiguration": {
+  "RefreshTokensCleanupEnabled": true,
+  "RefreshTokensCleanupInterval": "24:00:00"
+}
+```
+
+When enabled, cleanup runs once on application start and then repeats after the configured interval.
 
 ## Project Structure
 
@@ -103,6 +117,7 @@ Public types and methods are documented with XML comments. Release builds genera
 * **Framework:** ASP.NET Core (`net10.0`)
 * **Identity:** ASP.NET Core Identity
 * **Database:** PostgreSQL
+* **Configuration:** Raycynix typed configuration
 * **API Documentation:** Swagger / OpenAPI
 * **Architecture:** Clean Architecture / Onion Architecture
 

@@ -23,12 +23,13 @@ public interface IAuthService
     Task<AuthResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Authenticates an existing user by username or email and issues a new token pair.
+    /// Authenticates an existing user by username or email, optionally revokes the current refresh token, and issues a new token pair.
     /// </summary>
     /// <param name="request">The login credentials.</param>
+    /// <param name="refreshToken">The current raw refresh token received from the client, if any.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>The issued authentication tokens.</returns>
-    Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+    Task<AuthResult> LoginAsync(LoginRequest request, string? refreshToken = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Revokes an active refresh token if it exists.

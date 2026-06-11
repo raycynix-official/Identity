@@ -38,6 +38,15 @@ public static class RefreshTokenCookieExtensions
         }
     }
 
+    extension(IRequestCookieCollection cookies)
+    {
+        /// <summary>
+        /// Reads the refresh token from the request cookies.
+        /// </summary>
+        /// <returns>The raw refresh token value, or <see langword="null"/> when the cookie is missing.</returns>
+        public string? GetRefreshToken() => cookies[RefreshTokenCookieName];
+    }
+
     private static CookieOptions CreateRefreshTokenCookieOptions(TimeSpan? lifetime = null)
     {
         var options = new CookieOptions

@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.2.1]
+
+### Added
+* Added configurable background cleanup for expired refresh tokens.
+* Documented background refresh-token cleanup configuration.
+
+### Changed
+* Login now rotates an existing active refresh token for the authenticated user when the request includes a refresh-token cookie.
+* Release builds no longer try to create a NuGet package for the service.
+
 ## [0.2.0]
 
 ### Added

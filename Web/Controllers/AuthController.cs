@@ -56,7 +56,9 @@ public class AuthController(
     [HttpPost("login")]
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
-        var result = await authService.LoginAsync(request, cancellationToken);
+        var refreshToken = Request.Cookies.GetRefreshToken();
+        
+        var result = await authService.LoginAsync(request, refreshToken, cancellationToken);
 
         Response.Cookies.AppendRefreshToken(result.RefreshToken, jwtSettings.Value.RefreshTokenLifetime);
 
