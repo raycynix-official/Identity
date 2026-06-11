@@ -12,11 +12,19 @@ using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Infrastructure.Configurators.Identity;
 
+/// <summary>
+/// Configures the refresh-token entity mapping.
+/// </summary>
 [DatabaseTable("user_refresh_tokens")]
 public class UserRefreshTokenConfigurator : GenericConfigurator<UserRefreshToken>
 {
+    /// <inheritdoc />
     public override Type[] DependsOn => [typeof(User)];
 
+    /// <summary>
+    /// Configures the refresh-token table, key, indexes, fields, and user relationship.
+    /// </summary>
+    /// <param name="modelBuilder">The EF Core model builder.</param>
     public override void Configure(ModelBuilder modelBuilder)
     {
         base.Configure(modelBuilder);

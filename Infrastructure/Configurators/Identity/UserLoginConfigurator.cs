@@ -12,11 +12,19 @@ using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Infrastructure.Configurators.Identity;
 
+/// <summary>
+/// Configures the external user-login entity mapping.
+/// </summary>
 [DatabaseTable("user_logins")]
 public class UserLoginConfigurator : GenericConfigurator<UserLogin>
 {
+    /// <inheritdoc />
     public override Type[] DependsOn => [typeof(User)];
 
+    /// <summary>
+    /// Configures the external login composite key, indexes, and user relationship.
+    /// </summary>
+    /// <param name="modelBuilder">The EF Core model builder.</param>
     public override void Configure(ModelBuilder modelBuilder)
     {
         base.Configure(modelBuilder);

@@ -5,11 +5,19 @@ using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Infrastructure.Configurators.Identity;
 
+/// <summary>
+/// Configures the role-claim entity mapping.
+/// </summary>
 [DatabaseTable("role_claims")]
 public class RoleClaimConfigurator : GenericConfigurator<RoleClaim>
 {
+    /// <inheritdoc />
     public override Type[] DependsOn => [typeof(Role)];
 
+    /// <summary>
+    /// Configures the role-claim table, key, indexes, and role relationship.
+    /// </summary>
+    /// <param name="modelBuilder">The EF Core model builder.</param>
     public override void Configure(ModelBuilder modelBuilder)
     {
         base.Configure(modelBuilder);

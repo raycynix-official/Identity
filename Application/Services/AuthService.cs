@@ -19,6 +19,9 @@ using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Application.Services;
 
+/// <summary>
+/// Provides authentication operations backed by ASP.NET Core Identity and refresh-token persistence.
+/// </summary>
 public class AuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
@@ -28,6 +31,7 @@ public class AuthService(
         databaseContext,
     Raycynix.Extensions.Logging.Abstractions.ILogger<AuthService> logger) : IAuthService
 {
+    /// <inheritdoc />
     public async Task<AuthResult> RegisterAsync(RegisterRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -55,6 +59,7 @@ public class AuthService(
         return new AuthResult(accessToken.TokenString(), accessToken.ValidTo, refreshToken);
     }
 
+    /// <inheritdoc />
     public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -91,6 +96,7 @@ public class AuthService(
         return new AuthResult(accessToken.TokenString(), accessToken.ValidTo, refreshToken);
     }
 
+    /// <inheritdoc />
     public async Task LogoutAsync(string? refreshToken,
         CancellationToken cancellationToken = default)
     {
@@ -119,6 +125,7 @@ public class AuthService(
         await databaseContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<AuthResult> RefreshTokenAsync(string? refreshToken, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))

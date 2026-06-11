@@ -12,11 +12,19 @@ using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Infrastructure.Configurators.Identity;
 
+/// <summary>
+/// Configures the Identity user-token entity mapping.
+/// </summary>
 [DatabaseTable("user_tokens")]
 public class UserTokenConfigurator : GenericConfigurator<UserToken>
 {
+    /// <inheritdoc />
     public override Type[] DependsOn => [typeof(User)];
 
+    /// <summary>
+    /// Configures the user-token composite key, indexes, and user relationship.
+    /// </summary>
+    /// <param name="modelBuilder">The EF Core model builder.</param>
     public override void Configure(ModelBuilder modelBuilder)
     {
         base.Configure(modelBuilder);

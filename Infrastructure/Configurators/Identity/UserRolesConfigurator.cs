@@ -12,11 +12,19 @@ using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Infrastructure.Configurators.Identity;
 
+/// <summary>
+/// Configures the user-role assignment entity mapping.
+/// </summary>
 [DatabaseTable("user_roles")]
 public class UserRolesConfigurator : GenericConfigurator<UserRole>
 {
+    /// <inheritdoc />
     public override Type[] DependsOn => [typeof(User), typeof(Role)];
 
+    /// <summary>
+    /// Configures the user-role composite key, indexes, and user and role relationships.
+    /// </summary>
+    /// <param name="modelBuilder">The EF Core model builder.</param>
     public override void Configure(ModelBuilder modelBuilder)
     {
         base.Configure(modelBuilder);

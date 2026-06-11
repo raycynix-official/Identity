@@ -9,6 +9,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Raycynix.Services.AuthService.Application.Models;
 
+/// <summary>
+/// Represents the data required to register a user.
+/// </summary>
+/// <param name="UserName">The unique user name.</param>
+/// <param name="Email">The user's email address.</param>
+/// <param name="Password">The user's password.</param>
 public record RegisterRequest(
     [Required]
     [RegularExpression(@".*\S.*", ErrorMessage = "Username is required.")]
@@ -22,6 +28,11 @@ public record RegisterRequest(
     [RegularExpression(@".*\S.*", ErrorMessage = "Password is required.")]
     string Password);
 
+/// <summary>
+/// Represents the credentials required to sign in.
+/// </summary>
+/// <param name="Login">The user name or email address.</param>
+/// <param name="Password">The user's password.</param>
 public record LoginRequest(
     [Required]
     [RegularExpression(@".*\S.*", ErrorMessage = "Login is required.")]

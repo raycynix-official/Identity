@@ -12,11 +12,19 @@ using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Infrastructure.Configurators.Identity;
 
+/// <summary>
+/// Configures the user entity mapping.
+/// </summary>
 [DatabaseTable("users")]
 public sealed class UserConfigurator : GenericConfigurator<User>
 {
+    /// <inheritdoc />
     public override Type[] DependsOn => [];
 
+    /// <summary>
+    /// Configures the user table, key, indexes, required fields, and length limits.
+    /// </summary>
+    /// <param name="modelBuilder">The EF Core model builder.</param>
     public override void Configure(ModelBuilder modelBuilder)
     {
         base.Configure(modelBuilder);

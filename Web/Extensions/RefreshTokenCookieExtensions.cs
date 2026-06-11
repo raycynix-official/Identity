@@ -7,17 +7,31 @@
 
 namespace Raycynix.Services.AuthService.Web.Extensions;
 
+/// <summary>
+/// Provides helpers for reading and writing refresh-token cookies.
+/// </summary>
 public static class RefreshTokenCookieExtensions
 {
+    /// <summary>
+    /// The name of the refresh-token cookie.
+    /// </summary>
     public const string RefreshTokenCookieName = "refresh_token";
 
     extension(IResponseCookies cookies)
     {
+        /// <summary>
+        /// Appends the refresh token cookie with secure options and the specified lifetime.
+        /// </summary>
+        /// <param name="refreshToken">The raw refresh token value.</param>
+        /// <param name="lifetime">The cookie lifetime.</param>
         public void AppendRefreshToken(string refreshToken, TimeSpan lifetime)
         {
             cookies.Append(RefreshTokenCookieName, refreshToken, CreateRefreshTokenCookieOptions(lifetime));
         }
 
+        /// <summary>
+        /// Deletes the refresh token cookie using the same cookie options used when it is created.
+        /// </summary>
         public void DeleteRefreshToken()
         {
             cookies.Delete(RefreshTokenCookieName, CreateRefreshTokenCookieOptions());

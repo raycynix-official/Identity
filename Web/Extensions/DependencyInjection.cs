@@ -18,10 +18,18 @@ using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Web.Extensions;
 
+/// <summary>
+/// Provides dependency-injection registration for the service.
+/// </summary>
 public static class DependencyInjection
 {
     extension(IServiceCollection services)
     {
+        /// <summary>
+        /// Registers application services, database integrations, Identity, logging, secrets, and exception handling.
+        /// </summary>
+        /// <param name="configuration">The application configuration source.</param>
+        /// <returns>The configured service collection.</returns>
         public IServiceCollection AddServices(IConfiguration configuration)
         {
             services.AddRaycynixExceptions();

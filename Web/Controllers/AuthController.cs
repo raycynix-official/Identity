@@ -14,6 +14,11 @@ using Raycynix.Services.AuthService.Web.Extensions;
 
 namespace Raycynix.Services.AuthService.Web.Controllers;
 
+/// <summary>
+/// Handles authentication HTTP endpoints.
+/// </summary>
+/// <param name="authService">The authentication service.</param>
+/// <param name="jwtSettings">The JWT configuration options.</param>
 [ApiController]
 [Route("api/v1/auth")]
 public class AuthController(
@@ -21,6 +26,12 @@ public class AuthController(
     IOptions<JwtConfiguration> jwtSettings
 ) : ControllerBase
 {
+    /// <summary>
+    /// Registers a new user and sets the issued refresh token in an HTTP-only cookie.
+    /// </summary>
+    /// <param name="request">The registration data.</param>
+    /// <param name="cancellationToken">A token used to cancel the operation.</param>
+    /// <returns>The access token response.</returns>
     [HttpPost("registration")]
     public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request,
         CancellationToken cancellationToken)
@@ -36,6 +47,12 @@ public class AuthController(
         );
     }
 
+    /// <summary>
+    /// Authenticates a user and sets the issued refresh token in an HTTP-only cookie.
+    /// </summary>
+    /// <param name="request">The login credentials.</param>
+    /// <param name="cancellationToken">A token used to cancel the operation.</param>
+    /// <returns>The access token response.</returns>
     [HttpPost("login")]
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
@@ -50,6 +67,11 @@ public class AuthController(
         );
     }
 
+    /// <summary>
+    /// Revokes the current refresh token and removes its cookie.
+    /// </summary>
+    /// <param name="cancellationToken">A token used to cancel the operation.</param>
+    /// <returns>An empty response when logout processing is complete.</returns>
     [HttpPost("logout")]
     public async Task<IActionResult> LogoutAsync(CancellationToken cancellationToken)
     {
@@ -62,6 +84,11 @@ public class AuthController(
         return NoContent();
     }
 
+    /// <summary>
+    /// Rotates the current refresh token and returns a new access token.
+    /// </summary>
+    /// <param name="cancellationToken">A token used to cancel the operation.</param>
+    /// <returns>The refreshed access token response.</returns>
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshTokenAsync(CancellationToken cancellationToken)
     {
