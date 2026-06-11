@@ -18,7 +18,7 @@ namespace Raycynix.Services.AuthService.Web.Background;
 /// </summary>
 public class RefreshTokensCleanupBackground(
     Raycynix.Extensions.Logging.Abstractions.ILogger<RefreshTokensCleanupBackground> logger,
-    IConfigurationAccessor<BackgroundServicesConfiguration> backgroundServicesConfiguration,
+    IConfigurationAccessor<BackgroundServiceConfiguration> backgroundServicesConfiguration,
     IServiceScopeFactory serviceScopeFactory)
     : BackgroundService
 {

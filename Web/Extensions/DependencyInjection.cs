@@ -36,12 +36,12 @@ public static class DependencyInjection
         {
             services.AddRaycynixExceptions();
 
-            services.AddRaycynixConfiguration<BackgroundServicesConfiguration>(
+            services.AddRaycynixConfiguration<BackgroundServiceConfiguration>(
                 configuration,
                 requireSection: true);
             services
-                .AddRaycynixConfigurationValidator<BackgroundServicesConfiguration,
-                    BackgroundServicesConfigurationValidator>();
+                .AddRaycynixConfigurationValidator<BackgroundServiceConfiguration,
+                    BackgroundServiceConfigurationValidator>();
 
             services.AddScoped<IOperationContext, OperationContext>();
 
@@ -63,8 +63,8 @@ public static class DependencyInjection
 
             services.AddScoped<IAuthService, Application.Services.AuthService>();
 
-            var backgroundServicesConfiguration = configuration.GetSection(nameof(BackgroundServicesConfiguration))
-                .Get<BackgroundServicesConfiguration>();
+            var backgroundServicesConfiguration = configuration.GetSection(nameof(BackgroundServiceConfiguration))
+                .Get<BackgroundServiceConfiguration>();
             if (backgroundServicesConfiguration is null)
                 throw new InvalidOperationException("Background services configuration not found");
 

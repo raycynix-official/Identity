@@ -10,7 +10,7 @@ namespace Raycynix.Services.AuthService.Domain.Configurations;
 /// <summary>
 /// Contains settings for optional background services.
 /// </summary>
-public class BackgroundServicesConfiguration
+public class BackgroundServiceConfiguration
 {
     /// <summary>
     /// Gets or sets a value indicating whether expired refresh tokens should be cleaned up in the background.
@@ -23,7 +23,7 @@ public class BackgroundServicesConfiguration
     public TimeSpan RefreshTokensCleanupInterval { get; set; } = TimeSpan.FromHours(24);
 
     /// <summary>
-    /// Validates the background services configuration.
+    /// Validates the background service configuration.
     /// </summary>
     /// <exception cref="InvalidOperationException">
     /// Thrown when refresh-token cleanup is enabled, and the cleanup interval is not greater than zero.
@@ -31,6 +31,6 @@ public class BackgroundServicesConfiguration
     public void Validate()
     {
         if (RefreshTokensCleanupEnabled && RefreshTokensCleanupInterval <= TimeSpan.Zero)
-            throw new InvalidOperationException("Refresh tokens cleanup interval must be greater than zero.");
+            throw new ArgumentOutOfRangeException(nameof(RefreshTokensCleanupInterval), "Refresh tokens interval cannot be negative.");
     }
 }

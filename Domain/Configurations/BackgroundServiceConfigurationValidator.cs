@@ -13,10 +13,10 @@ namespace Raycynix.Services.AuthService.Domain.Configurations;
 /// <summary>
 /// Validates background services configuration values.
 /// </summary>
-public sealed class BackgroundServicesConfigurationValidator : IConfigurationValidator<BackgroundServicesConfiguration>
+public sealed class BackgroundServiceConfigurationValidator : IConfigurationValidator<BackgroundServiceConfiguration>
 {
     /// <inheritdoc />
-    public ConfigurationValidationResult Validate(BackgroundServicesConfiguration options)
+    public ConfigurationValidationResult Validate(BackgroundServiceConfiguration options)
     {
         try
         {
