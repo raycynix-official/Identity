@@ -1,10 +1,12 @@
 # Raycynix.Services.AuthService
 
 ![.NET Version](https://img.shields.io/badge/.NET-10.0-blue.svg)
-![Version](https://img.shields.io/badge/version-0.0.1-green.svg)
+![Version](https://img.shields.io/badge/version-0.2.0-green.svg)
 ![TeamCity build status](https://ci.raycynix.com/app/rest/builds/buildType:id:TMP_DotNet_GitHubDeploy/statusIcon.svg)
 
-Auth Service for the Raycynix ecosystem, built with Clean Architecture principles and .NET 10.
+Auth Service for the Raycynix ecosystem, built with ASP.NET Core, ASP.NET Core Identity, PostgreSQL, and .NET 10.
+
+The service provides user registration, login, logout, and refresh-token rotation. Access tokens are returned in API responses, while refresh tokens are stored in secure HTTP-only cookies and persisted as SHA-256 hashes.
 
 ## Getting Started
 
@@ -16,30 +18,34 @@ Auth Service for the Raycynix ecosystem, built with Clean Architecture principle
 ### Run Locally
 1. Clone the repository:
    ```bash
-   git clone https://github.com/Raycynix/Raycynix.Services.AuthService.git
+   git clone https://github.com/Raycynix/Services.AuthService.git
    ```
 2. Navigate to the project directory:
    ```bash
-   cd Raycynix.Services.AuthService
+   cd Services.AuthService
    ```
 3. Restore dependencies:
    ```bash
    dotnet restore
    ```
-4. Run the application:
+4. Start PostgreSQL:
+   ```bash
+   docker compose up -d postgres
+   ```
+5. Configure the JWT secret and database credentials for your environment.
+6. Run the application:
    ```bash
    dotnet run --project Raycynix.Services.AuthService.csproj
    ```
 
 ### Run With Docker Compose
-For development, API and PostgreSQL can be started together:
+For development, PostgreSQL can be started with Docker Compose:
 
 ```bash
-docker compose up --build
+docker compose up -d postgres
 ```
 
 Available endpoints:
-* API: `http://localhost:5000`
 * PostgreSQL: `localhost:5432`
 
 PostgreSQL credentials from `docker-compose.yml`:
@@ -59,6 +65,27 @@ To remove the database volume too:
 docker compose down -v
 ```
 
+## API
+
+Base route: `/api/v1/auth`
+
+| Method | Route | Description |
+| --- | --- | --- |
+| `POST` | `/registration` | Registers a user, returns an access token, and sets a refresh-token cookie. |
+| `POST` | `/login` | Authenticates by username or email, returns an access token, and sets a refresh-token cookie. |
+| `POST` | `/logout` | Revokes the active refresh token and deletes the refresh-token cookie. |
+| `POST` | `/refresh` | Rotates the active refresh token and returns a new access token. |
+
+Swagger UI is available at `/swagger` in the Development environment.
+
+## Authentication Flow
+
+* Access tokens are JWT bearer tokens signed with the configured JWT secret.
+* Refresh tokens are generated from cryptographically random bytes.
+* Refresh tokens are stored in the database as SHA-256 hashes.
+* Refresh-token cookies are `HttpOnly`, `Secure`, and `SameSite=Strict`.
+* Refreshing a token revokes the previous refresh token and links it to the replacement token hash.
+
 ## Project Structure
 
 The solution follows Clean Architecture to ensure separation of concerns and testability:
@@ -68,10 +95,20 @@ The solution follows Clean Architecture to ensure separation of concerns and tes
 * **Domain**: Entities and domain rules
 * **Infrastructure**: Database and external integrations
 
+## Documentation
+
+Public types and methods are documented with XML comments. Release builds generate the XML documentation file.
+
 ## Tech Stack
 * **Framework:** ASP.NET Core (`net10.0`)
+* **Identity:** ASP.NET Core Identity
 * **Database:** PostgreSQL
+* **API Documentation:** Swagger / OpenAPI
 * **Architecture:** Clean Architecture / Onion Architecture
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 This project is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
