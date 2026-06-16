@@ -22,6 +22,12 @@ namespace Raycynix.Services.AuthService.Application.Services;
 /// <summary>
 /// Provides authentication operations backed by ASP.NET Core Identity and refresh-token persistence.
 /// </summary>
+/// <param name="userManager">The ASP.NET Core Identity user manager.</param>
+/// <param name="signInManager">The ASP.NET Core Identity sign-in manager.</param>
+/// <param name="jwtSettings">The JWT configuration options.</param>
+/// <param name="secretResolver">The secret resolver used to read the JWT signing secret.</param>
+/// <param name="databaseContext">The Identity database context used to persist refresh tokens.</param>
+/// <param name="logger">The logger used to write authentication events.</param>
 public class AuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
@@ -60,7 +66,7 @@ public class AuthService(
     }
 
     /// <inheritdoc />
-    public async Task<AuthResult> LoginAsync(LoginRequest request, string? requestRefreshToken = null,
+    public async Task<AuthResult> LoginAsync(LoginRequest request, string? refreshToken = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -88,19 +94,19 @@ public class AuthService(
         await userManager.UpdateAsync(user);
 
         var accessToken = await user.GenerateTokenAsync(secretResolver, jwtSettings.Value);
-        var refreshToken = SecurityExtensions.GenerateRefreshToken();
+        var newRefreshToken = SecurityExtensions.GenerateRefreshToken();
 
-        var userRefreshToken = user.GenerateUserRefreshToken(refreshToken, jwtSettings.Value);
+        var newUserRefreshToken = user.GenerateUserRefreshToken(newRefreshToken, jwtSettings.Value);
 
-        if (requestRefreshToken is not null)
+        if (refreshToken is not null)
         {
             logger.LogInformation("Refresh token is not null. Checking for old refresh token");
-            var requestRefreshTokenHash = SecurityExtensions.HashRefreshToken(requestRefreshToken);
-            
+            var refreshTokenHash = SecurityExtensions.HashRefreshToken(refreshToken);
+
             var oldUserRefreshToken = await databaseContext.Set<UserRefreshToken>()
                 .FirstOrDefaultAsync(
                     token => token.UserId == user.Id &&
-                             token.TokenHash == requestRefreshTokenHash &&
+                             token.TokenHash == refreshTokenHash &&
                              token.RevokedAt == null &&
                              token.ExpiresAt > DateTimeOffset.UtcNow,
                     cancellationToken);
@@ -108,15 +114,15 @@ public class AuthService(
             {
                 logger.LogInformation("Old refresh token found. Revoking it");
                 oldUserRefreshToken.RevokedAt = DateTimeOffset.UtcNow;
-                oldUserRefreshToken.ReplacedByTokenHash = userRefreshToken.TokenHash;
+                oldUserRefreshToken.ReplacedByTokenHash = newUserRefreshToken.TokenHash;
                 databaseContext.Update(oldUserRefreshToken);
             }
         }
 
-        await databaseContext.AddAsync(userRefreshToken, cancellationToken);
+        await databaseContext.AddAsync(newUserRefreshToken, cancellationToken);
         await databaseContext.SaveChangesAsync(cancellationToken);
 
-        return new AuthResult(accessToken.TokenString(), accessToken.ValidTo, refreshToken);
+        return new AuthResult(accessToken.TokenString(), accessToken.ValidTo, newRefreshToken);
     }
 
     /// <inheritdoc />
