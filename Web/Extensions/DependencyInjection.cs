@@ -54,7 +54,7 @@ public static class DependencyInjection
                 >(configuration).AddPostgreSql();
             services.AddRaycynixSecrets();
 
-            services.AddIdentity<User, Role>()
+            services.AddIdentity<User, Role>(options => { options.SignIn.RequireConfirmedEmail = true; })
                 .AddEntityFrameworkStores<
                     RaycynixIdentityDatabaseContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim,
                         UserToken>

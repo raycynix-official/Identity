@@ -15,7 +15,7 @@ public static class RefreshTokenCookieExtensions
     /// <summary>
     /// The name of the refresh-token cookie.
     /// </summary>
-    public const string RefreshTokenCookieName = "refresh_token";
+    private const string RefreshTokenCookieName = "refresh_token";
 
     extension(IResponseCookies cookies)
     {

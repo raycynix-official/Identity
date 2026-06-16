@@ -38,7 +38,7 @@ public class AuthService(
     Raycynix.Extensions.Logging.Abstractions.ILogger<AuthService> logger) : IAuthService
 {
     /// <inheritdoc />
-    public async Task<AuthResult> RegisterAsync(RegisterRequest request,
+    public async Task<RegisterResult> RegisterAsync(RegisterRequest request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -55,14 +55,9 @@ public class AuthService(
             throw new ConflictException(errors);
         }
 
-        var accessToken = await user.GenerateTokenAsync(secretResolver, jwtSettings.Value);
-        var refreshToken = SecurityExtensions.GenerateRefreshToken();
+        var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
-        var userRefreshToken = user.GenerateUserRefreshToken(refreshToken, jwtSettings.Value);
-        await databaseContext.AddAsync(userRefreshToken, cancellationToken);
-        await databaseContext.SaveChangesAsync(cancellationToken);
-
-        return new AuthResult(accessToken.TokenString(), accessToken.ValidTo, refreshToken);
+        return new RegisterResult(user.Email!, emailConfirmationToken);
     }
 
     /// <inheritdoc />
@@ -85,6 +80,12 @@ public class AuthService(
         var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
         if (!result.Succeeded)
         {
+            if (result.IsNotAllowed && !await userManager.IsEmailConfirmedAsync(user))
+            {
+                logger.LogWarning("Login Failed: email is not confirmed for user:{userId}", user.Id);
+                throw new UnauthorizedException("Email is not confirmed");
+            }
+
             logger.LogWarning("Login Failed: invalid Password for user:{userId}", user.Id);
             throw new UnauthorizedException("Invalid login or password");
         }
@@ -126,13 +127,101 @@ public class AuthService(
     }
 
     /// <inheritdoc />
+    public async Task<string> GenerateEmailConfirmationTokenAsync(EmailConfirmationTokenRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var user = await userManager.FindByEmailAsync(request.Email.Trim());
+        if (user is null)
+        {
+            logger.LogWarning("Email confirmation token generation failed: user with email:{email} not found",
+                request.Email);
+            throw new UnauthorizedException("User not found");
+        }
+
+        if (await userManager.IsEmailConfirmedAsync(user))
+        {
+            logger.LogWarning("Email confirmation token generation failed: email already confirmed for user:{userId}",
+                user.Id);
+            throw new UnauthorizedException("Email already confirmed");
+        }
+
+        return await userManager.GenerateEmailConfirmationTokenAsync(user);
+    }
+
+    /// <inheritdoc />
+    public async Task ConfirmEmailAsync(ConfirmEmailRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var user = await userManager.FindByEmailAsync(request.Email.Trim());
+        if (user is null)
+        {
+            logger.LogWarning("Email confirmation failed: user with email:{email} not found", request.Email);
+            throw new UnauthorizedException("User not found");
+        }
+
+        var result = await userManager.ConfirmEmailAsync(user, request.Token);
+        if (result.Succeeded)
+        {
+            return;
+        }
+
+        var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+        logger.LogWarning("Email confirmation failed for user:{userId}. Errors:{errors}", user.Id, errors);
+        throw new UnauthorizedException("Invalid email confirmation token");
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GeneratePasswordResetTokenAsync(PasswordResetTokenRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var user = await userManager.FindByEmailAsync(request.Email.Trim());
+        if (user is null)
+        {
+            logger.LogWarning("Password reset token generation failed: user with email:{email} not found",
+                request.Email);
+            throw new UnauthorizedException("User not found");
+        }
+
+        return await userManager.GeneratePasswordResetTokenAsync(user);
+    }
+
+    /// <inheritdoc />
+    public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var user = await userManager.FindByEmailAsync(request.Email.Trim());
+        if (user is null)
+        {
+            logger.LogWarning("Password reset failed: user with email:{email} not found", request.Email);
+            throw new UnauthorizedException("User not found");
+        }
+
+        var result = await userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        if (result.Succeeded)
+        {
+            await RevokeRefreshTokensAsync(user.Id, cancellationToken);
+            return;
+        }
+
+        var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+        logger.LogWarning("Password reset failed for user:{userId}. Errors:{errors}", user.Id, errors);
+        throw new ConflictException(errors);
+    }
+
+    /// <inheritdoc />
     public async Task LogoutAsync(string? refreshToken,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
         {
             logger.LogWarning("Logout failed: refresh token cookie is missing");
-            return;
+            throw new UnauthorizedException("Refresh token cookie is missing");
         }
 
         var tokenHash = SecurityExtensions.HashRefreshToken(refreshToken);
@@ -146,7 +235,7 @@ public class AuthService(
         if (userRefreshToken is null)
         {
             logger.LogWarning("Logout failed: refresh token not found");
-            return;
+            throw new UnauthorizedException("Refresh token not found");
         }
 
         userRefreshToken.RevokedAt = DateTimeOffset.UtcNow;
@@ -203,5 +292,27 @@ public class AuthService(
         await databaseContext.SaveChangesAsync(cancellationToken);
 
         return new AuthResult(accessToken.TokenString(), accessToken.ValidTo, newRefreshToken);
+    }
+
+    private async Task RevokeRefreshTokensAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var activeRefreshTokens = await databaseContext.Set<UserRefreshToken>()
+            .Where(token => token.UserId == userId &&
+                            token.RevokedAt == null &&
+                            token.ExpiresAt > DateTimeOffset.UtcNow)
+            .ToListAsync(cancellationToken);
+
+        if (activeRefreshTokens.Count == 0)
+        {
+            return;
+        }
+
+        var revokedAt = DateTimeOffset.UtcNow;
+        foreach (var refreshToken in activeRefreshTokens)
+        {
+            refreshToken.RevokedAt = revokedAt;
+        }
+
+        await databaseContext.SaveChangesAsync(cancellationToken);
     }
 }

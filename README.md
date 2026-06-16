@@ -6,7 +6,7 @@
 
 Auth Service for the Raycynix ecosystem, built with ASP.NET Core, ASP.NET Core Identity, PostgreSQL, and .NET 10.
 
-The service provides user registration, login, logout, refresh-token rotation, and expired refresh-token cleanup. Access tokens are returned in API responses, while refresh tokens are stored in secure HTTP-only cookies and persisted as SHA-256 hashes.
+The service provides user registration, email confirmation, login, logout, refresh-token rotation, password reset, and expired refresh-token cleanup. Access tokens are returned in API responses, while refresh tokens are stored in secure HTTP-only cookies and persisted as SHA-256 hashes.
 
 ## Getting Started
 
@@ -71,8 +71,12 @@ Base route: `/api/v1/auth`
 
 | Method | Route | Description |
 | --- | --- | --- |
-| `POST` | `/registration` | Registers a user, returns an access token, and sets a refresh-token cookie. |
+| `POST` | `/registration` | Registers a user and returns an email confirmation token. |
 | `POST` | `/login` | Authenticates by username or email, returns an access token, and sets a refresh-token cookie. |
+| `POST` | `/email-confirmation/token` | Generates a new email confirmation token. |
+| `POST` | `/email-confirmation/confirm` | Confirms a user's email address. |
+| `POST` | `/password-reset/token` | Generates a password reset token. |
+| `POST` | `/password-reset/reset` | Resets a user's password. |
 | `POST` | `/logout` | Revokes the active refresh token and deletes the refresh-token cookie. |
 | `POST` | `/refresh` | Rotates the active refresh token and returns a new access token. |
 
@@ -81,11 +85,14 @@ Swagger UI is available at `/swagger` in the Development environment.
 ## Authentication Flow
 
 * Access tokens are JWT bearer tokens signed with the configured JWT secret.
+* Registration creates a user and returns an ASP.NET Core Identity email confirmation token.
+* Login requires a confirmed email address.
 * Refresh tokens are generated from cryptographically random bytes.
 * Refresh tokens are stored in the database as SHA-256 hashes.
 * Refresh-token cookies are `HttpOnly`, `Secure`, and `SameSite=Strict`.
 * Login reads the existing refresh-token cookie, revokes the active token for the authenticated user, and links it to the newly issued refresh token.
 * Refreshing a token revokes the previous refresh token and links it to the replacement token hash.
+* Password reset uses ASP.NET Core Identity password reset tokens and revokes the user's active refresh tokens after a successful reset.
 
 ## Background Services
 
