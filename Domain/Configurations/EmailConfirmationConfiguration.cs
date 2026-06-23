@@ -13,26 +13,18 @@ namespace Raycynix.Services.AuthService.Domain.Configurations;
 public class EmailConfirmationConfiguration
 {
     /// <summary>
-    /// Gets or sets the public email confirmation endpoint URL without query parameters.
+    /// Gets or sets the relative or absolute path to the email confirmation HTML template.
     /// </summary>
-    public string ConfirmationUrl { get; set; } = string.Empty;
+    public string TemplatePath { get; set; } = "Templates/Emails/EmailConfirmation.html";
 
     /// <summary>
     /// Validates the email confirmation configuration.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when the confirmation URL is missing or invalid.
-    /// </exception>
     public void Validate()
     {
-        if (string.IsNullOrWhiteSpace(ConfirmationUrl))
+        if (string.IsNullOrWhiteSpace(TemplatePath))
         {
-            throw new InvalidOperationException("Email confirmation URL is required");
-        }
-
-        if (!Uri.TryCreate(ConfirmationUrl, UriKind.Absolute, out _))
-        {
-            throw new InvalidOperationException("Email confirmation URL must be an absolute URL");
+            throw new InvalidOperationException("Email confirmation template path is required");
         }
     }
 }

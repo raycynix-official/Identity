@@ -20,7 +20,7 @@ namespace Raycynix.Services.AuthService.Web.Controllers;
 /// <param name="authService">The authentication service.</param>
 /// <param name="jwtSettings">The JWT configuration options.</param>
 [ApiController]
-[Route("api/v1/auth")]
+[Route(AuthRoutes.Base)]
 public class AuthController(
     IAuthService authService,
     IOptions<JwtConfiguration> jwtSettings
@@ -32,7 +32,7 @@ public class AuthController(
     /// <param name="request">The registration data.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>The registration response.</returns>
-    [HttpPost("registration")]
+    [HttpPost(AuthRoutes.Registration)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RegisterResponse))]
     public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request,
         CancellationToken cancellationToken)
@@ -48,7 +48,7 @@ public class AuthController(
     /// <param name="request">The login credentials.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>The access token response.</returns>
-    [HttpPost("login")]
+    [HttpPost(AuthRoutes.Login)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
@@ -71,7 +71,7 @@ public class AuthController(
     /// <param name="request">The email confirmation token request.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>An empty response when the email confirmation link is sent.</returns>
-    [HttpPost("email-confirmation/send")]
+    [HttpPost(AuthRoutes.EmailConfirmationSend)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> SendEmailConfirmationLinkAsync(
         [FromBody] EmailConfirmationLinkRequest request,
@@ -88,7 +88,7 @@ public class AuthController(
     /// <param name="request">The email confirmation request.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>An empty response when the email address is confirmed.</returns>
-    [HttpPost("email-confirmation/confirm")]
+    [HttpPost(AuthRoutes.EmailConfirmationConfirm)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> ConfirmEmailAsync([FromBody] ConfirmEmailRequest request,
         CancellationToken cancellationToken)
@@ -105,7 +105,7 @@ public class AuthController(
     /// <param name="token">The encoded email confirmation token.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>An empty response when the email address is confirmed.</returns>
-    [HttpGet("email-confirmation/confirm")]
+    [HttpGet(AuthRoutes.EmailConfirmationConfirm)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> ConfirmEmailAsync([FromQuery] string email, [FromQuery] string token,
         CancellationToken cancellationToken)
@@ -121,7 +121,7 @@ public class AuthController(
     /// <param name="request">The password reset token request.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>The generated password reset token.</returns>
-    [HttpPost("password-reset/token")]
+    [HttpPost(AuthRoutes.PasswordResetToken)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IdentityTokenResponse))]
     public async Task<IActionResult> GeneratePasswordResetTokenAsync([FromBody] PasswordResetTokenRequest request,
         CancellationToken cancellationToken)
@@ -137,7 +137,7 @@ public class AuthController(
     /// <param name="request">The password reset request.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>An empty response when the password is reset.</returns>
-    [HttpPost("password-reset/reset")]
+    [HttpPost(AuthRoutes.PasswordReset)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordRequest request,
         CancellationToken cancellationToken)
@@ -152,7 +152,7 @@ public class AuthController(
     /// </summary>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>An empty response when logout processing is complete.</returns>
-    [HttpPost("logout")]
+    [HttpPost(AuthRoutes.Logout)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> LogoutAsync(CancellationToken cancellationToken)
     {
@@ -170,7 +170,7 @@ public class AuthController(
     /// </summary>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>The refreshed access token response.</returns>
-    [HttpPost("refresh")]
+    [HttpPost(AuthRoutes.Refresh)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
     public async Task<IActionResult> RefreshTokenAsync(CancellationToken cancellationToken)
     {

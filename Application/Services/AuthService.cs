@@ -20,6 +20,7 @@ using Raycynix.Services.AuthService.Application.Interfaces;
 using Raycynix.Services.AuthService.Application.Models;
 using Raycynix.Services.AuthService.Domain.Configurations;
 using Raycynix.Services.AuthService.Domain.Entities.Identity;
+using System.Net;
 using System.Text;
 
 namespace Raycynix.Services.AuthService.Application.Services;
@@ -334,15 +335,22 @@ public class AuthService(
     private async Task SendEmailConfirmationAsync(User user, string confirmationToken,
         CancellationToken cancellationToken)
     {
+        var confirmationLink = CreateEmailConfirmationLink(user.Email!, confirmationToken);
+        var htmlBody = await RenderEmailConfirmationTemplateAsync(
+            user,
+            confirmationLink,
+            cancellationToken);
+
         var message = new EmailMessage
         {
             To = [new EmailAddress(user.Email!, user.UserName ?? user.Email!)],
-            Subject = "Confirm your Raycynix account email",
-            Body = EmailBody.FromPlainText(
+            Subject = "Confirm your Raycynix account",
+            Body = EmailBody.FromHtml(
+                htmlBody,
                 $"""
                 Confirm your Raycynix account email.
 
-                {CreateEmailConfirmationLink(user.Email!, confirmationToken)}
+                {confirmationLink}
 
                 Open this link to finish account setup.
                 """)
@@ -360,16 +368,46 @@ public class AuthService(
             user.Id, result.Provider);
     }
 
+    private async Task<string> RenderEmailConfirmationTemplateAsync(User user, string confirmationLink,
+        CancellationToken cancellationToken)
+    {
+        var templatePath = ResolveTemplatePath(emailConfirmationConfiguration.Value.TemplatePath);
+        var template = await File.ReadAllTextAsync(templatePath, cancellationToken);
+
+        return template
+            .Replace("{{UserName}}", WebUtility.HtmlEncode(user.UserName ?? user.Email), StringComparison.Ordinal)
+            .Replace("{{Email}}", WebUtility.HtmlEncode(user.Email), StringComparison.Ordinal)
+            .Replace("{{ConfirmationLink}}", WebUtility.HtmlEncode(confirmationLink), StringComparison.Ordinal);
+    }
+
+    private static string ResolveTemplatePath(string templatePath)
+    {
+        return Path.IsPathRooted(templatePath)
+            ? templatePath
+            : Path.Combine(AppContext.BaseDirectory, templatePath);
+    }
+
     private string CreateEmailConfirmationLink(string email, string confirmationToken)
     {
         var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(confirmationToken));
         return QueryHelpers.AddQueryString(
-            emailConfirmationConfiguration.Value.ConfirmationUrl,
+            CreateEmailConfirmationEndpointUrl(),
             new Dictionary<string, string?>
             {
                 [nameof(ConfirmEmailRequest.Email).ToLowerInvariant()] = email,
                 [nameof(ConfirmEmailRequest.Token).ToLowerInvariant()] = encodedToken
             });
+    }
+
+    private string CreateEmailConfirmationEndpointUrl()
+    {
+        var authority = jwtSettings.Value.Authority;
+        if (string.IsNullOrWhiteSpace(authority))
+        {
+            throw new InvalidOperationException("JWT authority is required to build email confirmation links");
+        }
+
+        return $"{authority.TrimEnd('/')}/{AuthRoutes.EmailConfirmationConfirmPath}";
     }
 
     private static string DecodeIdentityToken(string token)

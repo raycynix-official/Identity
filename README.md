@@ -114,13 +114,15 @@ Account emails are sent through `Raycynix.Extensions.Email.Smtp`.
 }
 ```
 
-Email confirmation links are built from `EmailConfirmationConfiguration`.
+Email confirmation links are built from `SecurityConfiguration:Jwt:Authority` and the email confirmation endpoint route.
 
 ```json
 "EmailConfirmationConfiguration": {
-  "ConfirmationUrl": "https://auth.raycynix.com/api/v1/auth/email-confirmation/confirm"
+  "TemplatePath": "Templates/Emails/EmailConfirmation.html"
 }
 ```
+
+The email body is rendered from `Templates/Emails/EmailConfirmation.html`. The template supports `{{UserName}}`, `{{Email}}`, and `{{ConfirmationLink}}` placeholders and is copied to the application output during build.
 
 ## Identity Options
 
