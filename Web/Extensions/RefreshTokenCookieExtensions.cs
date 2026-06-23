@@ -15,7 +15,7 @@ public static class RefreshTokenCookieExtensions
     /// <summary>
     /// The name of the refresh-token cookie.
     /// </summary>
-    public const string RefreshTokenCookieName = "refresh_token";
+    private const string RefreshTokenCookieName = "refresh_token";
 
     extension(IResponseCookies cookies)
     {
@@ -36,6 +36,15 @@ public static class RefreshTokenCookieExtensions
         {
             cookies.Delete(RefreshTokenCookieName, CreateRefreshTokenCookieOptions());
         }
+    }
+
+    extension(IRequestCookieCollection cookies)
+    {
+        /// <summary>
+        /// Reads the refresh token from the request cookies.
+        /// </summary>
+        /// <returns>The raw refresh token value, or <see langword="null"/> when the cookie is missing.</returns>
+        public string? GetRefreshToken() => cookies[RefreshTokenCookieName];
     }
 
     private static CookieOptions CreateRefreshTokenCookieOptions(TimeSpan? lifetime = null)

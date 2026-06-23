@@ -1,12 +1,12 @@
 # Raycynix.Services.AuthService
 
 ![.NET Version](https://img.shields.io/badge/.NET-10.0-blue.svg)
-![Version](https://img.shields.io/badge/version-0.2.0-green.svg)
+![Version](https://img.shields.io/badge/version-0.3.0-green.svg)
 ![TeamCity build status](https://ci.raycynix.com/app/rest/builds/buildType:id:TMP_DotNet_GitHubDeploy/statusIcon.svg)
 
 Auth Service for the Raycynix ecosystem, built with ASP.NET Core, ASP.NET Core Identity, PostgreSQL, and .NET 10.
 
-The service provides user registration, login, logout, and refresh-token rotation. Access tokens are returned in API responses, while refresh tokens are stored in secure HTTP-only cookies and persisted as SHA-256 hashes.
+The service provides user registration, email confirmation, login, logout, refresh-token rotation, password reset, and expired refresh-token cleanup. Access tokens are returned in API responses, while refresh tokens are stored in secure HTTP-only cookies and persisted as SHA-256 hashes.
 
 ## Getting Started
 
@@ -71,8 +71,13 @@ Base route: `/api/v1/auth`
 
 | Method | Route | Description |
 | --- | --- | --- |
-| `POST` | `/registration` | Registers a user, returns an access token, and sets a refresh-token cookie. |
+| `POST` | `/registration` | Registers a user and sends an email confirmation link. |
 | `POST` | `/login` | Authenticates by username or email, returns an access token, and sets a refresh-token cookie. |
+| `POST` | `/email-confirmation/send` | Sends a new email confirmation link. |
+| `GET` | `/email-confirmation/confirm` | Confirms a user's email address from an email confirmation link. |
+| `POST` | `/email-confirmation/confirm` | Confirms a user's email address. |
+| `POST` | `/password-reset/token` | Generates a password reset token. |
+| `POST` | `/password-reset/reset` | Resets a user's password. |
 | `POST` | `/logout` | Revokes the active refresh token and deletes the refresh-token cookie. |
 | `POST` | `/refresh` | Rotates the active refresh token and returns a new access token. |
 
@@ -81,10 +86,71 @@ Swagger UI is available at `/swagger` in the Development environment.
 ## Authentication Flow
 
 * Access tokens are JWT bearer tokens signed with the configured JWT secret.
+* Registration creates a user, generates an ASP.NET Core Identity email confirmation token, and sends a confirmation link by email.
+* Login requires a confirmed email address when `IdentityOptions:SignIn:RequireConfirmedEmail` is enabled.
 * Refresh tokens are generated from cryptographically random bytes.
 * Refresh tokens are stored in the database as SHA-256 hashes.
 * Refresh-token cookies are `HttpOnly`, `Secure`, and `SameSite=Strict`.
+* Login reads the existing refresh-token cookie, revokes the active token for the authenticated user, and links it to the newly issued refresh token.
 * Refreshing a token revokes the previous refresh token and links it to the replacement token hash.
+* Password reset uses ASP.NET Core Identity password reset tokens and revokes the user's active refresh tokens after a successful reset.
+
+## Email Configuration
+
+Account emails are sent through `Raycynix.Extensions.Email.Smtp`.
+
+```json
+"EmailConfiguration": {
+  "DefaultFromAddress": "no-reply@raycynix.com",
+  "DefaultFromDisplayName": "Raycynix Auth",
+  "SmtpConfiguration": {
+    "Host": "smtp.example.com",
+    "Port": 465,
+    "SecureSocketOptions": "SslOnConnect",
+    "Username": "smtp-user",
+    "Password": "smtp-password",
+    "TimeoutMilliseconds": 100000
+  }
+}
+```
+
+Email confirmation links are built from `SecurityConfiguration:Jwt:Authority` and the email confirmation endpoint route.
+
+```json
+"EmailConfirmationConfiguration": {
+  "TemplatePath": "Templates/Emails/EmailConfirmation.html"
+}
+```
+
+The email body is rendered from `Templates/Emails/EmailConfirmation.html`. The template supports `{{UserName}}`, `{{Email}}`, and `{{ConfirmationLink}}` placeholders and is copied to the application output during build.
+
+## Identity Options
+
+Identity behavior is controlled through the standard ASP.NET Core Identity options.
+
+```json
+"IdentityOptions": {
+  "SignIn": {
+    "RequireConfirmedEmail": false,
+    "RequireConfirmedPhoneNumber": false
+  }
+}
+```
+
+When `SignIn:RequireConfirmedEmail` is `true`, users must confirm their email address before login. When it is `false`, email confirmation tokens can still be generated and confirmed, but login does not require confirmation.
+
+## Background Services
+
+Expired refresh tokens are removed by `RefreshTokensCleanupBackground`. The service is controlled through `BackgroundServicesConfiguration` and validated through Raycynix typed configuration.
+
+```json
+"BackgroundServicesConfiguration": {
+  "RefreshTokensCleanupEnabled": true,
+  "RefreshTokensCleanupInterval": "24:00:00"
+}
+```
+
+When enabled, cleanup runs once on application start and then repeats after the configured interval.
 
 ## Project Structure
 
@@ -103,6 +169,7 @@ Public types and methods are documented with XML comments. Release builds genera
 * **Framework:** ASP.NET Core (`net10.0`)
 * **Identity:** ASP.NET Core Identity
 * **Database:** PostgreSQL
+* **Configuration:** Raycynix typed configuration
 * **API Documentation:** Swagger / OpenAPI
 * **Architecture:** Clean Architecture / Onion Architecture
 

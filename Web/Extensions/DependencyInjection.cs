@@ -7,14 +7,20 @@
 
 using Microsoft.AspNetCore.Identity;
 using Raycynix.Extensions.Common.Context;
-using Raycynix.Extensions.Database.Abstractions.Configurations;
+using Raycynix.Extensions.Configuration;
 using Raycynix.Extensions.Database.AspNetCore.Identity;
 using Raycynix.Extensions.Database.PostgreSql;
+using Raycynix.Extensions.Email;
+using Raycynix.Extensions.Email.Smtp;
 using Raycynix.Extensions.Exceptions;
 using Raycynix.Extensions.Logging;
 using Raycynix.Extensions.Secrets;
 using Raycynix.Services.AuthService.Application.Interfaces;
+using Raycynix.Services.AuthService.Domain.Configurations;
+using Raycynix.Services.AuthService.Domain.Configurations.BackgroundServices;
+using Raycynix.Services.AuthService.Domain.Configurations.Validators;
 using Raycynix.Services.AuthService.Domain.Entities.Identity;
+using Raycynix.Services.AuthService.Web.Background;
 
 namespace Raycynix.Services.AuthService.Web.Extensions;
 
@@ -34,12 +40,22 @@ public static class DependencyInjection
         {
             services.AddRaycynixExceptions();
 
-            services.AddOptions<DatabaseConfiguration>()
-                .Bind(configuration.GetSection(nameof(DatabaseConfiguration)));
+            services.AddRaycynixConfiguration<BackgroundServiceConfiguration>(
+                configuration,
+                requireSection: true);
+            services
+                .AddRaycynixConfigurationValidator<BackgroundServiceConfiguration,
+                    BackgroundServiceConfigurationValidator>();
+            services.AddRaycynixConfiguration<EmailConfirmationConfiguration>(
+                configuration,
+                requireSection: true);
+            services.AddRaycynixConfigurationValidator<EmailConfirmationConfiguration,
+                EmailConfirmationConfigurationValidator>();
 
             services.AddScoped<IOperationContext, OperationContext>();
 
             services.AddRaycynixLogging();
+            services.AddRaycynixEmail(configuration).AddSmtp();
 
             services
                 .AddRaycynixIdentityDatabase<
@@ -48,7 +64,8 @@ public static class DependencyInjection
                 >(configuration).AddPostgreSql();
             services.AddRaycynixSecrets();
 
-            services.AddIdentity<User, Role>()
+            services.AddIdentity<User, Role>(
+                    options => configuration.GetSection(nameof(IdentityOptions)).Bind(options))
                 .AddEntityFrameworkStores<
                     RaycynixIdentityDatabaseContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim,
                         UserToken>
@@ -57,6 +74,14 @@ public static class DependencyInjection
 
             services.AddScoped<IAuthService, Application.Services.AuthService>();
 
+            var backgroundServicesConfiguration = configuration.GetSection(nameof(BackgroundServiceConfiguration))
+                .Get<BackgroundServiceConfiguration>();
+            if (backgroundServicesConfiguration is null)
+                throw new InvalidOperationException("Background services configuration not found");
+
+            if (!backgroundServicesConfiguration.RefreshTokensCleanupEnabled) return services;
+
+            services.AddHostedService<RefreshTokensCleanupBackground>();
 
             return services;
         }

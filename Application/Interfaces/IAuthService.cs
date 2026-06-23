@@ -15,33 +15,98 @@ namespace Raycynix.Services.AuthService.Application.Interfaces;
 public interface IAuthService
 {
     /// <summary>
-    /// Registers a new user and issues a new access token and refresh token pair.
+    /// Registers a new user and sends an email confirmation link.
     /// </summary>
     /// <param name="request">The registration data used to create the user.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
-    /// <returns>The issued authentication tokens.</returns>
-    Task<AuthResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
+    /// <returns>The registered email address.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is <see langword="null"/>.</exception>
+    /// <exception cref="Raycynix.Extensions.Exceptions.ConflictException">
+    /// Thrown when Identity rejects the registration request.
+    /// </exception>
+    Task<RegisterResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Authenticates an existing user by username or email and issues a new token pair.
+    /// Authenticates a user by username or email, optionally revokes the supplied refresh token, and issues a new token pair.
     /// </summary>
     /// <param name="request">The login credentials.</param>
+    /// <param name="refreshToken">The current raw refresh token received from the client, or <see langword="null"/> when none was supplied.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>The issued authentication tokens.</returns>
-    Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is <see langword="null"/>.</exception>
+    /// <exception cref="Raycynix.Extensions.Exceptions.UnauthorizedException">
+    /// Thrown when the login value does not match a user or the password check fails.
+    /// </exception>
+    Task<AuthResult> LoginAsync(LoginRequest request, string? refreshToken = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Revokes an active refresh token if it exists.
+    /// Sends a new email confirmation link to an existing unconfirmed user.
     /// </summary>
-    /// <param name="refreshToken">The raw refresh token received from the client.</param>
+    /// <param name="request">The email address that identifies the user.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is <see langword="null"/>.</exception>
+    /// <exception cref="Raycynix.Extensions.Exceptions.UnauthorizedException">
+    /// Thrown when the user does not exist or the email address is already confirmed.
+    /// </exception>
+    Task SendEmailConfirmationLinkAsync(EmailConfirmationLinkRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Confirms a user's email address with an email confirmation token.
+    /// </summary>
+    /// <param name="request">The email address and confirmation token.</param>
+    /// <param name="cancellationToken">A token used to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is <see langword="null"/>.</exception>
+    /// <exception cref="Raycynix.Extensions.Exceptions.UnauthorizedException">
+    /// Thrown when the user does not exist or the confirmation token is invalid.
+    /// </exception>
+    Task ConfirmEmailAsync(ConfirmEmailRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Generates a password reset token for an existing user.
+    /// </summary>
+    /// <param name="request">The email address that identifies the user.</param>
+    /// <param name="cancellationToken">A token used to cancel the operation.</param>
+    /// <returns>The generated password reset token.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is <see langword="null"/>.</exception>
+    /// <exception cref="Raycynix.Extensions.Exceptions.UnauthorizedException">
+    /// Thrown when the user does not exist.
+    /// </exception>
+    Task<string> GeneratePasswordResetTokenAsync(PasswordResetTokenRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Resets a user's password with a password reset token.
+    /// </summary>
+    /// <param name="request">The email address, password reset token, and new password.</param>
+    /// <param name="cancellationToken">A token used to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is <see langword="null"/>.</exception>
+    /// <exception cref="Raycynix.Extensions.Exceptions.UnauthorizedException">
+    /// Thrown when the user does not exist.
+    /// </exception>
+    /// <exception cref="Raycynix.Extensions.Exceptions.ConflictException">
+    /// Thrown when Identity rejects the password reset request.
+    /// </exception>
+    Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Revokes an active refresh token.
+    /// </summary>
+    /// <param name="refreshToken">The raw refresh token received from the client, or <see langword="null"/> when none was supplied.</param>
+    /// <param name="cancellationToken">A token used to cancel the operation.</param>
+    /// <exception cref="Raycynix.Extensions.Exceptions.UnauthorizedException">
+    /// Thrown when the refresh token is missing, invalid, expired, or revoked.
+    /// </exception>
     Task LogoutAsync(string? refreshToken, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Rotates an active refresh token and issues a new access token and refresh token pair.
+    /// Revokes an active refresh token and issues a replacement access token and refresh token.
     /// </summary>
-    /// <param name="refreshToken">The raw refresh token received from the client.</param>
+    /// <param name="refreshToken">The raw refresh token received from the client, or <see langword="null"/> when none was supplied.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>The refreshed authentication tokens.</returns>
+    /// <exception cref="Raycynix.Extensions.Exceptions.UnauthorizedException">
+    /// Thrown when the refresh token is missing, invalid, expired, revoked, or no longer belongs to an existing user.
+    /// </exception>
     Task<AuthResult> RefreshTokenAsync(string? refreshToken, CancellationToken cancellationToken = default);
 }

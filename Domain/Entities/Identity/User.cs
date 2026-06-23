@@ -29,8 +29,8 @@ public sealed class User : IdentityUser<Guid>
     /// <param name="request">The registration data used to populate the user.</param>
     public User(RegisterRequest request)
     {
-        UserName = request.UserName;
-        Email = request.Email;
+        UserName = request.UserName.Trim();
+        Email = request.Email.Trim();
         CreatedAt = DateTimeOffset.UtcNow;
     }
 

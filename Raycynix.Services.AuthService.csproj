@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <Version>0.2.0</Version>
+        <Version>0.3.0</Version>
 
         <Description>The Auth Service.</Description>
     </PropertyGroup>
@@ -57,19 +57,22 @@
         <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" Visible="false" PackagePath="\"/>
         <None Include="$(MSBuildThisFileDirectory)CHANGELOG.md" Pack="false" Visible="true" PackagePath="\"/>
         <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" Visible="true" PackagePath="\"/>
+        <None Update="Templates\Emails\*.html" CopyToOutputDirectory="PreserveNewest"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.8"/>
-        <PackageReference Include="Raycynix.Extensions.Configuration.AspNetCore" Version="2.0.0"/>
-        <PackageReference Include="Raycynix.Extensions.Database" Version="2.1.0"/>
-        <PackageReference Include="Raycynix.Extensions.Database.AspNetCore" Version="2.1.0"/>
-        <PackageReference Include="Raycynix.Extensions.Database.AspNetCore.Identity" Version="2.1.0"/>
-        <PackageReference Include="Raycynix.Extensions.Database.PostgreSql" Version="2.1.0"/>
-        <PackageReference Include="Raycynix.Extensions.Exceptions.AspNetCore" Version="1.0.1"/>
-        <PackageReference Include="Raycynix.Extensions.Secrets" Version="1.1.0"/>
-        <PackageReference Include="Raycynix.Extensions.Security.AspNetCore" Version="1.0.2"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1"/>
+        <PackageReference Include="Raycynix.Extensions.Configuration.AspNetCore" Version="2.2.0"/>
+        <PackageReference Include="Raycynix.Extensions.Database" Version="2.2.0"/>
+        <PackageReference Include="Raycynix.Extensions.Database.AspNetCore" Version="2.2.0"/>
+        <PackageReference Include="Raycynix.Extensions.Database.AspNetCore.Identity" Version="2.2.0"/>
+        <PackageReference Include="Raycynix.Extensions.Database.PostgreSql" Version="2.2.0"/>
+        <PackageReference Include="Raycynix.Extensions.Email.Smtp" Version="2.2.0"/>
+        <PackageReference Include="Raycynix.Extensions.Exceptions.AspNetCore" Version="2.2.0"/>
+        <PackageReference Include="Raycynix.Extensions.Logging" Version="2.2.0"/>
+        <PackageReference Include="Raycynix.Extensions.Observability.AspNetCore" Version="2.2.0"/>
+        <PackageReference Include="Raycynix.Extensions.Secrets" Version="2.2.0"/>
+        <PackageReference Include="Raycynix.Extensions.Security.AspNetCore" Version="2.2.0"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3"/>
     </ItemGroup>
 
     <PropertyGroup>
