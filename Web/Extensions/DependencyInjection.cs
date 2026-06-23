@@ -10,10 +10,13 @@ using Raycynix.Extensions.Common.Context;
 using Raycynix.Extensions.Configuration;
 using Raycynix.Extensions.Database.AspNetCore.Identity;
 using Raycynix.Extensions.Database.PostgreSql;
+using Raycynix.Extensions.Email;
+using Raycynix.Extensions.Email.Smtp;
 using Raycynix.Extensions.Exceptions;
 using Raycynix.Extensions.Logging;
 using Raycynix.Extensions.Secrets;
 using Raycynix.Services.AuthService.Application.Interfaces;
+using Raycynix.Services.AuthService.Domain.Configurations;
 using Raycynix.Services.AuthService.Domain.Configurations.BackgroundServices;
 using Raycynix.Services.AuthService.Domain.Configurations.Validators;
 using Raycynix.Services.AuthService.Domain.Entities.Identity;
@@ -43,10 +46,16 @@ public static class DependencyInjection
             services
                 .AddRaycynixConfigurationValidator<BackgroundServiceConfiguration,
                     BackgroundServiceConfigurationValidator>();
+            services.AddRaycynixConfiguration<EmailConfirmationConfiguration>(
+                configuration,
+                requireSection: true);
+            services.AddRaycynixConfigurationValidator<EmailConfirmationConfiguration,
+                EmailConfirmationConfigurationValidator>();
 
             services.AddScoped<IOperationContext, OperationContext>();
 
             services.AddRaycynixLogging();
+            services.AddRaycynixEmail(configuration).AddSmtp();
 
             services
                 .AddRaycynixIdentityDatabase<

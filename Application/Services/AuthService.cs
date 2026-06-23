@@ -6,16 +6,21 @@
 //     http://www.apache.org/licenses/LICENSE-2.0
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Raycynix.Extensions.Database.AspNetCore.Identity;
+using Raycynix.Extensions.Email.Abstractions.Interfaces;
+using Raycynix.Extensions.Email.Abstractions.Models;
 using Raycynix.Extensions.Exceptions;
 using Raycynix.Extensions.Security.Abstractions.Interfaces;
 using Raycynix.Extensions.Security.Configurations;
 using Raycynix.Services.AuthService.Application.Extensions;
 using Raycynix.Services.AuthService.Application.Interfaces;
 using Raycynix.Services.AuthService.Application.Models;
+using Raycynix.Services.AuthService.Domain.Configurations;
 using Raycynix.Services.AuthService.Domain.Entities.Identity;
+using System.Text;
 
 namespace Raycynix.Services.AuthService.Application.Services;
 
@@ -29,6 +34,8 @@ namespace Raycynix.Services.AuthService.Application.Services;
 /// <param name="databaseContext">The Identity database context used to persist refresh tokens.</param>
 /// <param name="logger">The logger used to write authentication events.</param>
 /// <param name="identityOptions">The ASP.NET Core Identity behavior configuration options.</param>
+/// <param name="emailSender">The email sender used to deliver account emails.</param>
+/// <param name="emailConfirmationConfiguration">The email confirmation delivery configuration options.</param>
 public class AuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
@@ -37,7 +44,9 @@ public class AuthService(
     RaycynixIdentityDatabaseContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>
         databaseContext,
     Raycynix.Extensions.Logging.Abstractions.ILogger<AuthService> logger,
-    IOptions<IdentityOptions> identityOptions) : IAuthService
+    IOptions<IdentityOptions> identityOptions,
+    IEmailSender emailSender,
+    IOptions<EmailConfirmationConfiguration> emailConfirmationConfiguration) : IAuthService
 {
     /// <inheritdoc />
     public async Task<RegisterResult> RegisterAsync(RegisterRequest request,
@@ -58,8 +67,9 @@ public class AuthService(
         }
 
         var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        await SendEmailConfirmationAsync(user, emailConfirmationToken, cancellationToken);
 
-        return new RegisterResult(user.Email!, emailConfirmationToken);
+        return new RegisterResult(user.Email!);
     }
 
     /// <inheritdoc />
@@ -131,7 +141,7 @@ public class AuthService(
     }
 
     /// <inheritdoc />
-    public async Task<string> GenerateEmailConfirmationTokenAsync(EmailConfirmationTokenRequest request,
+    public async Task SendEmailConfirmationLinkAsync(EmailConfirmationLinkRequest request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -151,7 +161,8 @@ public class AuthService(
             throw new UnauthorizedException("Email already confirmed");
         }
 
-        return await userManager.GenerateEmailConfirmationTokenAsync(user);
+        var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        await SendEmailConfirmationAsync(user, emailConfirmationToken, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -166,7 +177,7 @@ public class AuthService(
             throw new UnauthorizedException("User not found");
         }
 
-        var result = await userManager.ConfirmEmailAsync(user, request.Token);
+        var result = await userManager.ConfirmEmailAsync(user, DecodeIdentityToken(request.Token));
         if (result.Succeeded)
         {
             return;
@@ -318,5 +329,58 @@ public class AuthService(
         }
 
         await databaseContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task SendEmailConfirmationAsync(User user, string confirmationToken,
+        CancellationToken cancellationToken)
+    {
+        var message = new EmailMessage
+        {
+            To = [new EmailAddress(user.Email!, user.UserName ?? user.Email!)],
+            Subject = "Confirm your Raycynix account email",
+            Body = EmailBody.FromPlainText(
+                $"""
+                Confirm your Raycynix account email.
+
+                {CreateEmailConfirmationLink(user.Email!, confirmationToken)}
+
+                Open this link to finish account setup.
+                """)
+        };
+
+        var result = await emailSender.SendAsync(message, cancellationToken);
+        if (!result.Succeeded)
+        {
+            logger.LogError("Email confirmation message failed for user:{userId}. Provider:{provider}. Error:{error}",
+                user.Id, result.Provider, result.ErrorMessage);
+            throw new InvalidOperationException("Email confirmation message could not be sent");
+        }
+
+        logger.LogInformation("Email confirmation message sent for user:{userId}. Provider:{provider}",
+            user.Id, result.Provider);
+    }
+
+    private string CreateEmailConfirmationLink(string email, string confirmationToken)
+    {
+        var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(confirmationToken));
+        return QueryHelpers.AddQueryString(
+            emailConfirmationConfiguration.Value.ConfirmationUrl,
+            new Dictionary<string, string?>
+            {
+                [nameof(ConfirmEmailRequest.Email).ToLowerInvariant()] = email,
+                [nameof(ConfirmEmailRequest.Token).ToLowerInvariant()] = encodedToken
+            });
+    }
+
+    private static string DecodeIdentityToken(string token)
+    {
+        try
+        {
+            return Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+        }
+        catch (FormatException)
+        {
+            return token;
+        }
     }
 }

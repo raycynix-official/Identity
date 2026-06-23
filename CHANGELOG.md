@@ -5,13 +5,15 @@ All notable changes to this project are documented in this file.
 ## [0.3.0]
 
 ### Added
+* Added SMTP-backed email delivery for email confirmation links.
 * Added configurable email confirmation enforcement through `IdentityOptions:SignIn:RequireConfirmedEmail`.
-* Added email confirmation token generation and email confirmation endpoints.
+* Added email confirmation link generation and email confirmation endpoints.
 * Added password reset token generation and password reset endpoints.
 * Added confirmed-email enforcement for login.
 
 ### Changed
-* Registration now returns an email confirmation token instead of issuing access and refresh tokens.
+* Registration now sends an email confirmation link instead of issuing access and refresh tokens.
+* Email confirmation token regeneration now sends a confirmation link instead of returning the token in the API response.
 * Password reset now revokes the user's active refresh tokens after a successful reset.
 
 ## [0.2.1]

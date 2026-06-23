@@ -27,7 +27,7 @@ public class AuthController(
 ) : ControllerBase
 {
     /// <summary>
-    /// Registers a new user and returns an email confirmation token.
+    /// Registers a new user and sends an email confirmation link.
     /// </summary>
     /// <param name="request">The registration data.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
@@ -39,7 +39,7 @@ public class AuthController(
     {
         var result = await authService.RegisterAsync(request, cancellationToken);
 
-        return Ok(new RegisterResponse(result.Email, result.EmailConfirmationToken));
+        return Ok(new RegisterResponse(result.Email));
     }
 
     /// <summary>
@@ -66,20 +66,20 @@ public class AuthController(
     }
 
     /// <summary>
-    /// Generates a new email confirmation token.
+    /// Sends a new email confirmation link.
     /// </summary>
     /// <param name="request">The email confirmation token request.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
-    /// <returns>The generated email confirmation token.</returns>
-    [HttpPost("email-confirmation/token")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IdentityTokenResponse))]
-    public async Task<IActionResult> GenerateEmailConfirmationTokenAsync(
-        [FromBody] EmailConfirmationTokenRequest request,
+    /// <returns>An empty response when the email confirmation link is sent.</returns>
+    [HttpPost("email-confirmation/send")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> SendEmailConfirmationLinkAsync(
+        [FromBody] EmailConfirmationLinkRequest request,
         CancellationToken cancellationToken)
     {
-        var token = await authService.GenerateEmailConfirmationTokenAsync(request, cancellationToken);
+        await authService.SendEmailConfirmationLinkAsync(request, cancellationToken);
 
-        return Ok(new IdentityTokenResponse(token));
+        return NoContent();
     }
 
     /// <summary>
@@ -94,6 +94,23 @@ public class AuthController(
         CancellationToken cancellationToken)
     {
         await authService.ConfirmEmailAsync(request, cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Confirms a user's email address from an email confirmation link.
+    /// </summary>
+    /// <param name="email">The user's email address.</param>
+    /// <param name="token">The encoded email confirmation token.</param>
+    /// <param name="cancellationToken">A token used to cancel the operation.</param>
+    /// <returns>An empty response when the email address is confirmed.</returns>
+    [HttpGet("email-confirmation/confirm")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> ConfirmEmailAsync([FromQuery] string email, [FromQuery] string token,
+        CancellationToken cancellationToken)
+    {
+        await authService.ConfirmEmailAsync(new ConfirmEmailRequest(email, token), cancellationToken);
 
         return NoContent();
     }

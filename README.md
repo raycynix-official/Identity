@@ -71,9 +71,10 @@ Base route: `/api/v1/auth`
 
 | Method | Route | Description |
 | --- | --- | --- |
-| `POST` | `/registration` | Registers a user and returns an email confirmation token. |
+| `POST` | `/registration` | Registers a user and sends an email confirmation link. |
 | `POST` | `/login` | Authenticates by username or email, returns an access token, and sets a refresh-token cookie. |
-| `POST` | `/email-confirmation/token` | Generates a new email confirmation token. |
+| `POST` | `/email-confirmation/send` | Sends a new email confirmation link. |
+| `GET` | `/email-confirmation/confirm` | Confirms a user's email address from an email confirmation link. |
 | `POST` | `/email-confirmation/confirm` | Confirms a user's email address. |
 | `POST` | `/password-reset/token` | Generates a password reset token. |
 | `POST` | `/password-reset/reset` | Resets a user's password. |
@@ -85,7 +86,7 @@ Swagger UI is available at `/swagger` in the Development environment.
 ## Authentication Flow
 
 * Access tokens are JWT bearer tokens signed with the configured JWT secret.
-* Registration creates a user and returns an ASP.NET Core Identity email confirmation token.
+* Registration creates a user, generates an ASP.NET Core Identity email confirmation token, and sends a confirmation link by email.
 * Login requires a confirmed email address when `IdentityOptions:SignIn:RequireConfirmedEmail` is enabled.
 * Refresh tokens are generated from cryptographically random bytes.
 * Refresh tokens are stored in the database as SHA-256 hashes.
@@ -93,6 +94,33 @@ Swagger UI is available at `/swagger` in the Development environment.
 * Login reads the existing refresh-token cookie, revokes the active token for the authenticated user, and links it to the newly issued refresh token.
 * Refreshing a token revokes the previous refresh token and links it to the replacement token hash.
 * Password reset uses ASP.NET Core Identity password reset tokens and revokes the user's active refresh tokens after a successful reset.
+
+## Email Configuration
+
+Account emails are sent through `Raycynix.Extensions.Email.Smtp`.
+
+```json
+"EmailConfiguration": {
+  "DefaultFromAddress": "no-reply@raycynix.com",
+  "DefaultFromDisplayName": "Raycynix Auth",
+  "SmtpConfiguration": {
+    "Host": "smtp.example.com",
+    "Port": 465,
+    "SecureSocketOptions": "SslOnConnect",
+    "Username": "smtp-user",
+    "Password": "smtp-password",
+    "TimeoutMilliseconds": 100000
+  }
+}
+```
+
+Email confirmation links are built from `EmailConfirmationConfiguration`.
+
+```json
+"EmailConfirmationConfiguration": {
+  "ConfirmationUrl": "https://auth.raycynix.com/api/v1/auth/email-confirmation/confirm"
+}
+```
 
 ## Identity Options
 

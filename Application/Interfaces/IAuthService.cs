@@ -15,11 +15,11 @@ namespace Raycynix.Services.AuthService.Application.Interfaces;
 public interface IAuthService
 {
     /// <summary>
-    /// Registers a new user and generates an email confirmation token.
+    /// Registers a new user and sends an email confirmation link.
     /// </summary>
     /// <param name="request">The registration data used to create the user.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
-    /// <returns>The registered email address and generated email confirmation token.</returns>
+    /// <returns>The registered email address.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is <see langword="null"/>.</exception>
     /// <exception cref="Raycynix.Extensions.Exceptions.ConflictException">
     /// Thrown when Identity rejects the registration request.
@@ -40,16 +40,15 @@ public interface IAuthService
     Task<AuthResult> LoginAsync(LoginRequest request, string? refreshToken = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Generates a new email confirmation token for an existing unconfirmed user.
+    /// Sends a new email confirmation link to an existing unconfirmed user.
     /// </summary>
     /// <param name="request">The email address that identifies the user.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
-    /// <returns>The generated email confirmation token.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is <see langword="null"/>.</exception>
     /// <exception cref="Raycynix.Extensions.Exceptions.UnauthorizedException">
     /// Thrown when the user does not exist or the email address is already confirmed.
     /// </exception>
-    Task<string> GenerateEmailConfirmationTokenAsync(EmailConfirmationTokenRequest request,
+    Task SendEmailConfirmationLinkAsync(EmailConfirmationLinkRequest request,
         CancellationToken cancellationToken = default);
 
     /// <summary>

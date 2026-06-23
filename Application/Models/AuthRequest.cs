@@ -43,10 +43,10 @@ public record LoginRequest(
     string Password);
 
 /// <summary>
-/// Represents the data required to request a new email confirmation token.
+/// Represents the data required to request a new email confirmation link.
 /// </summary>
 /// <param name="Email">The user's email address.</param>
-public record EmailConfirmationTokenRequest(
+public record EmailConfirmationLinkRequest(
     [Required]
     [EmailAddress]
     string Email);
