@@ -14,7 +14,8 @@ using Raycynix.Extensions.Exceptions;
 using Raycynix.Extensions.Logging;
 using Raycynix.Extensions.Secrets;
 using Raycynix.Services.AuthService.Application.Interfaces;
-using Raycynix.Services.AuthService.Domain.Configurations;
+using Raycynix.Services.AuthService.Domain.Configurations.BackgroundServices;
+using Raycynix.Services.AuthService.Domain.Configurations.Validators;
 using Raycynix.Services.AuthService.Domain.Entities.Identity;
 using Raycynix.Services.AuthService.Web.Background;
 
@@ -54,7 +55,8 @@ public static class DependencyInjection
                 >(configuration).AddPostgreSql();
             services.AddRaycynixSecrets();
 
-            services.AddIdentity<User, Role>(options => { options.SignIn.RequireConfirmedEmail = true; })
+            services.AddIdentity<User, Role>(
+                    options => configuration.GetSection(nameof(IdentityOptions)).Bind(options))
                 .AddEntityFrameworkStores<
                     RaycynixIdentityDatabaseContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim,
                         UserToken>

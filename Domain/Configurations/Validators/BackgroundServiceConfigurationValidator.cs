@@ -7,8 +7,9 @@
 
 using Raycynix.Extensions.Configuration.Abstractions.Interfaces;
 using Raycynix.Extensions.Configuration.Abstractions.Models;
+using Raycynix.Services.AuthService.Domain.Configurations.BackgroundServices;
 
-namespace Raycynix.Services.AuthService.Domain.Configurations;
+namespace Raycynix.Services.AuthService.Domain.Configurations.Validators;
 
 /// <summary>
 /// Validates background services configuration values.

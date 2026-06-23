@@ -1,7 +1,7 @@
 # Raycynix.Services.AuthService
 
 ![.NET Version](https://img.shields.io/badge/.NET-10.0-blue.svg)
-![Version](https://img.shields.io/badge/version-0.2.1-green.svg)
+![Version](https://img.shields.io/badge/version-0.3.0-green.svg)
 ![TeamCity build status](https://ci.raycynix.com/app/rest/builds/buildType:id:TMP_DotNet_GitHubDeploy/statusIcon.svg)
 
 Auth Service for the Raycynix ecosystem, built with ASP.NET Core, ASP.NET Core Identity, PostgreSQL, and .NET 10.
@@ -86,13 +86,28 @@ Swagger UI is available at `/swagger` in the Development environment.
 
 * Access tokens are JWT bearer tokens signed with the configured JWT secret.
 * Registration creates a user and returns an ASP.NET Core Identity email confirmation token.
-* Login requires a confirmed email address.
+* Login requires a confirmed email address when `IdentityOptions:SignIn:RequireConfirmedEmail` is enabled.
 * Refresh tokens are generated from cryptographically random bytes.
 * Refresh tokens are stored in the database as SHA-256 hashes.
 * Refresh-token cookies are `HttpOnly`, `Secure`, and `SameSite=Strict`.
 * Login reads the existing refresh-token cookie, revokes the active token for the authenticated user, and links it to the newly issued refresh token.
 * Refreshing a token revokes the previous refresh token and links it to the replacement token hash.
 * Password reset uses ASP.NET Core Identity password reset tokens and revokes the user's active refresh tokens after a successful reset.
+
+## Identity Options
+
+Identity behavior is controlled through the standard ASP.NET Core Identity options.
+
+```json
+"IdentityOptions": {
+  "SignIn": {
+    "RequireConfirmedEmail": false,
+    "RequireConfirmedPhoneNumber": false
+  }
+}
+```
+
+When `SignIn:RequireConfirmedEmail` is `true`, users must confirm their email address before login. When it is `false`, email confirmation tokens can still be generated and confirmed, but login does not require confirmation.
 
 ## Background Services
 

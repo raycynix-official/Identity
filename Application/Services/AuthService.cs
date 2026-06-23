@@ -28,6 +28,7 @@ namespace Raycynix.Services.AuthService.Application.Services;
 /// <param name="secretResolver">The secret resolver used to read the JWT signing secret.</param>
 /// <param name="databaseContext">The Identity database context used to persist refresh tokens.</param>
 /// <param name="logger">The logger used to write authentication events.</param>
+/// <param name="identityOptions">The ASP.NET Core Identity behavior configuration options.</param>
 public class AuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
@@ -35,7 +36,8 @@ public class AuthService(
     ISecretResolver secretResolver,
     RaycynixIdentityDatabaseContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>
         databaseContext,
-    Raycynix.Extensions.Logging.Abstractions.ILogger<AuthService> logger) : IAuthService
+    Raycynix.Extensions.Logging.Abstractions.ILogger<AuthService> logger,
+    IOptions<IdentityOptions> identityOptions) : IAuthService
 {
     /// <inheritdoc />
     public async Task<RegisterResult> RegisterAsync(RegisterRequest request,
@@ -80,7 +82,9 @@ public class AuthService(
         var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
         if (!result.Succeeded)
         {
-            if (result.IsNotAllowed && !await userManager.IsEmailConfirmedAsync(user))
+            if (result.IsNotAllowed &&
+                identityOptions.Value.SignIn.RequireConfirmedEmail &&
+                !await userManager.IsEmailConfirmedAsync(user))
             {
                 logger.LogWarning("Login Failed: email is not confirmed for user:{userId}", user.Id);
                 throw new UnauthorizedException("Email is not confirmed");

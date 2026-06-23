@@ -5,6 +5,7 @@ All notable changes to this project are documented in this file.
 ## [0.3.0]
 
 ### Added
+* Added configurable email confirmation enforcement through `IdentityOptions:SignIn:RequireConfirmedEmail`.
 * Added email confirmation token generation and email confirmation endpoints.
 * Added password reset token generation and password reset endpoints.
 * Added confirmed-email enforcement for login.

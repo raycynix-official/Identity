@@ -5,7 +5,7 @@
 // 
 // http://www.apache.org/licenses/LICENSE-2.0
 
-namespace Raycynix.Services.AuthService.Domain.Configurations;
+namespace Raycynix.Services.AuthService.Domain.Configurations.BackgroundServices;
 
 /// <summary>
 /// Contains settings for optional background services.

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Raycynix.Extensions.Configuration.Abstractions.Interfaces;
 using Raycynix.Extensions.Database.AspNetCore.Identity;
 using Raycynix.Services.AuthService.Domain.Configurations;
+using Raycynix.Services.AuthService.Domain.Configurations.BackgroundServices;
 using Raycynix.Services.AuthService.Domain.Entities.Identity;
 
 namespace Raycynix.Services.AuthService.Web.Background;
