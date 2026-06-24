@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <Version>0.3.0</Version>
+        <Version>0.3.1</Version>
 
         <Description>The Auth Service.</Description>
     </PropertyGroup>
@@ -15,7 +15,6 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <IsPackable>false</IsPackable>
         <PackageIcon>logo.png</PackageIcon>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -36,13 +35,12 @@
 
     <PropertyGroup>
         <Copyright>Copyright © $([System.DateTime]::Now.Year) Raycynix</Copyright>
-        <RepositoryUrl>https://github.com/Raycynix/Services.AuthService</RepositoryUrl>
-        <PackageProjectUrl>https://github.com/Raycynix/Services.AuthService</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/raycynix-official/Services.AuthService</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/raycynix-official/Services.AuthService</PackageProjectUrl>
         <RepositoryType>GitHub</RepositoryType>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Release'">
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
 

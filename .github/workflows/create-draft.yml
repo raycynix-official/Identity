@@ -4,40 +4,46 @@ on:
   push:
     branches:
       - release
-        
+
 permissions:
   contents: write
-  
+  pull-requests: read
+
 jobs:
-  get-version:        
+  get-version:
     name: Getting version from .csproj
     runs-on: ubuntu-latest
-    outputs: 
+    outputs:
       version: ${{ steps.get-proj-version.outputs.version }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth: '0'
-          token: '${{ github.token }}'
+          fetch-depth: 0
+          token: ${{ github.token }}
+
       - name: Get Version Number
         id: get-proj-version
         uses: raycynix-official/get-csproj-version-action@v1.1.0
-    
+
   draft:
     name: Setting up draft release
     runs-on: ubuntu-latest
     needs: get-version
+
+    permissions:
+      contents: write
+      pull-requests: read
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        
-      - name: Create Draft Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update Draft Release
+        uses: release-drafter/release-drafter@v7
         with:
-          tag_name: ${{ needs.get-version.outputs.version }}
-          release_name: Release ${{ needs.get-version.outputs.version }}
-          draft: true
+          config-name: release-drafter.yml
+          version: ${{ needs.get-version.outputs.version }}
+          tag: v${{ needs.get-version.outputs.version }}
+          name: Release v${{ needs.get-version.outputs.version }}
+          commitish: release
+          publish: false
           prerelease: false
