@@ -1,48 +1,47 @@
-﻿name-template: 'Release v$RESOLVED_VERSION'
-tag-template: 'v$RESOLVED_VERSION'
-template: |
-  # What's Changed
-
-  $CHANGES
-
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+﻿name-template: "Release v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
 
 categories:
-  - title: 'Breaking'
-    label: 'type: breaking'
+  - type: "pre-exclude"
+    when:
+      label: "skip-changelog"
+      
+  - title: "Breaking Changes"
+    labels:
+      - "breaking change"
+    exclusive: true
     
-  - title: 'New'
-    label: 'type: feature'
+  - title: "Features"
+    labels:
+      - "feature"
+    exclusive: true
     
-  - title: 'Bug Fixes'
-    label: 'type: bug'
-    
-  - title: 'Maintenance'
-    label: 'type: maintenance'
-    
-  - title: 'Documentation'
-    label: 'type: documentation'
-    
-  - title: 'Other changes'
-    
-  - title: 'Dependency Updates'
-    label: 'type: dependencies'
-    collapse-after: 5
+  - title: "Bug Fixes & Security"
+    labels:
+      - "bug"
+      - "security"
+    exclusive: true
 
-version-resolver:
-  major:
+  - title: "Improvements"
     labels:
-      - 'type: breaking'
-  minor:
-    labels:
-      - 'type: feature'
-  patch:
-    labels:
-      - 'type: bug'
-      - 'type: maintenance'
-      - 'type: docs'
-      - 'type: dependencies'
-      - 'type: security'
+      - "improvement"
+    exclusive: true
 
-exclude-labels:
-  - 'skip-changelog'
+  - title: "Maintenance"
+    labels:
+      - "ci"
+      - "dependencies"
+      - "maintenance"
+      - "tests"
+      - "documentation"
+    exclusive: true
+    
+  - title: "Other Changes"
+
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+change-title-escapes: '\<*_&'
+
+template: |
+  ## Changes
+
+  $CHANGES
