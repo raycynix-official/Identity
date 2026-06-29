@@ -18,7 +18,7 @@ The service provides user registration, email confirmation, login, logout, refre
 ### Run Locally
 1. Clone the repository:
    ```bash
-   git clone https://github.com/Raycynix/Services.AuthService.git
+   git clone https://github.com/raycynix-official/Services.AuthService.git
    ```
 2. Navigate to the project directory:
    ```bash
@@ -69,17 +69,17 @@ docker compose down -v
 
 Base route: `/api/v1/auth`
 
-| Method | Route | Description |
-| --- | --- | --- |
-| `POST` | `/registration` | Registers a user and sends an email confirmation link. |
-| `POST` | `/login` | Authenticates by username or email, returns an access token, and sets a refresh-token cookie. |
-| `POST` | `/email-confirmation/send` | Sends a new email confirmation link. |
-| `GET` | `/email-confirmation/confirm` | Confirms a user's email address from an email confirmation link. |
-| `POST` | `/email-confirmation/confirm` | Confirms a user's email address. |
-| `POST` | `/password-reset/token` | Generates a password reset token. |
-| `POST` | `/password-reset/reset` | Resets a user's password. |
-| `POST` | `/logout` | Revokes the active refresh token and deletes the refresh-token cookie. |
-| `POST` | `/refresh` | Rotates the active refresh token and returns a new access token. |
+| Method | Route                         | Description                                                                                   |
+|--------|-------------------------------|-----------------------------------------------------------------------------------------------|
+| `POST` | `/registration`               | Registers a user and sends an email confirmation link.                                        |
+| `POST` | `/login`                      | Authenticates by username or email, returns an access token, and sets a refresh-token cookie. |
+| `POST` | `/email-confirmation/send`    | Sends a new email confirmation link.                                                          |
+| `GET`  | `/email-confirmation/confirm` | Confirms a user's email address from an email confirmation link.                              |
+| `POST` | `/email-confirmation/confirm` | Confirms a user's email address.                                                              |
+| `POST` | `/password-reset/token`       | Generates a password reset token.                                                             |
+| `POST` | `/password-reset/reset`       | Resets a user's password.                                                                     |
+| `POST` | `/logout`                     | Revokes the active refresh token and deletes the refresh-token cookie.                        |
+| `POST` | `/refresh`                    | Rotates the active refresh token and returns a new access token.                              |
 
 Swagger UI is available at `/swagger` in the Development environment. The root path `/` redirects to `/swagger` in Development.
 
@@ -90,33 +90,37 @@ The service uses Raycynix typed configuration and validates required configurati
 Required security settings:
 
 ```json
-"SecurityConfiguration": {
-  "Jwt": {
-    "Authority": "https://auth.raycynix.com",
-    "Issuer": "raycynix-auth",
-    "Audience": "raycynix-services",
-    "AccessTokenLifetime": "00:15:00",
-    "RefreshTokenLifetime": "14.00:00:00",
-    "ClockSkew": "00:01:00",
-    "RequireHttpsMetadata": true,
-    "Secret": "<jwt-signing-secret>"
-  }
+{
+   "SecurityConfiguration": {
+      "Jwt": {
+         "Authority": "https://auth.raycynix.com",
+         "Issuer": "raycynix-auth",
+         "Audience": "raycynix-services",
+         "AccessTokenLifetime": "00:15:00",
+         "RefreshTokenLifetime": "14.00:00:00",
+         "ClockSkew": "00:01:00",
+         "RequireHttpsMetadata": true,
+         "Secret": "<jwt-signing-secret>"
+      }
+   }
 }
 ```
 
 Required database settings:
 
 ```json
-"DatabaseConfiguration": {
-  "ConnectionConfiguration": {
-    "Host": "localhost",
-    "Port": 5432,
-    "Name": "raycynix_auth_dev",
-    "Username": "postgres",
-    "Password": "postgres"
-  },
-  "UseMigrations": false,
-  "EnsureCreated": true
+{
+   "DatabaseConfiguration": {
+      "ConnectionConfiguration": {
+         "Host": "localhost",
+         "Port": 5432,
+         "Name": "raycynix_auth_dev",
+         "Username": "postgres",
+         "Password": "postgres"
+      },
+      "UseMigrations": false,
+      "EnsureCreated": true
+   }
 }
 ```
 
@@ -137,16 +141,18 @@ Required database settings:
 Account emails are sent through `Raycynix.Extensions.Email.Smtp`.
 
 ```json
-"EmailConfiguration": {
-  "DefaultFromAddress": "no-reply@raycynix.com",
-  "DefaultFromDisplayName": "Raycynix Auth",
-  "SmtpConfiguration": {
-    "Host": "smtp.example.com",
-    "Port": 465,
-    "SecureSocketOptions": "SslOnConnect",
-    "Username": "smtp-user",
-    "Password": "smtp-password",
-    "TimeoutMilliseconds": 100000
+{
+  "EmailConfiguration": {
+    "DefaultFromAddress": "no-reply@raycynix.com",
+    "DefaultFromDisplayName": "Raycynix No-Reply",
+    "SmtpConfiguration": {
+      "Host": "smtp.example.com",
+      "Port": 465,
+      "SecureSocketOptions": "SslOnConnect",
+      "Username": "smtp-user",
+      "Password": "smtp-password",
+      "TimeoutMilliseconds": 100000
+    }
   }
 }
 ```
@@ -154,23 +160,27 @@ Account emails are sent through `Raycynix.Extensions.Email.Smtp`.
 Email confirmation links are built from `SecurityConfiguration:Jwt:Authority` and the email confirmation endpoint route.
 
 ```json
-"EmailConfirmationConfiguration": {
-  "TemplatePath": "Templates/Emails/EmailConfirmation.html"
+{
+   "EmailConfirmationConfiguration": {
+     "TemplatePath": "Templates/Emails/EmailConfirmation.html"
+   }
 }
 ```
 
-The email body is rendered from `Templates/Emails/EmailConfirmation.html`. The template supports `{{UserName}}`, `{{Email}}`, and `{{ConfirmationLink}}` placeholders and is copied to the application output during build.
+The email body is rendered from the configured `Templates/Emails/EmailConfirmation.html` runtime path. The source template is located at `src/Templates/Emails/EmailConfirmation.html`, supports `{{UserName}}`, `{{Email}}`, and `{{ConfirmationLink}}` placeholders, and is copied to the application output during build.
 
 ## Identity Options
 
 Identity behavior is controlled through the standard ASP.NET Core Identity options.
 
 ```json
-"IdentityOptions": {
-  "SignIn": {
-    "RequireConfirmedEmail": false,
-    "RequireConfirmedPhoneNumber": false
-  }
+{
+   "IdentityOptions": {
+      "SignIn": {
+         "RequireConfirmedEmail": false,
+         "RequireConfirmedPhoneNumber": false
+      }
+   }
 }
 ```
 
@@ -181,9 +191,11 @@ When `SignIn:RequireConfirmedEmail` is `true`, users must confirm their email ad
 Expired refresh tokens are removed by `RefreshTokensCleanupBackground`. The service is controlled through `BackgroundServiceConfiguration` and validated through Raycynix typed configuration.
 
 ```json
-"BackgroundServiceConfiguration": {
-  "RefreshTokensCleanupEnabled": true,
-  "RefreshTokensCleanupInterval": "24:00:00"
+{
+   "BackgroundServiceConfiguration": {
+      "RefreshTokensCleanupEnabled": true,
+      "RefreshTokensCleanupInterval": "24:00:00"
+   }
 }
 ```
 
