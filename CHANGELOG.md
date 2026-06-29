@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.1]
+
+### Changed
+* Moved the application project and source folders under the `src` directory.
+* Updated the solution structure to nest the service project under the `src` solution folder.
+* Updated Docker build paths for the new `src` layout.
+* Updated XML documentation for background service configuration and cleanup dependencies.
+* Updated README version, TeamCity badge metadata, configuration documentation, project paths, and Swagger development behavior.
+
 ## [0.3.0]
 
 ### Added

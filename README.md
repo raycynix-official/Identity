@@ -1,8 +1,8 @@
 # Raycynix.Services.AuthService
 
 ![.NET Version](https://img.shields.io/badge/.NET-10.0-blue.svg)
-![Version](https://img.shields.io/badge/version-0.3.0-green.svg)
-![TeamCity build status](https://ci.raycynix.com/app/rest/builds/buildType:id:TMP_DotNet_GitHubDeploy/statusIcon.svg)
+![Version](https://img.shields.io/badge/version-0.3.1-green.svg)
+![TeamCity build status](https://ci.raycynix.com/app/rest/builds/buildType:id:RSX_AuthService_GitHubDeploy/statusIcon.svg)
 
 Auth Service for the Raycynix ecosystem, built with ASP.NET Core, ASP.NET Core Identity, PostgreSQL, and .NET 10.
 
@@ -32,10 +32,10 @@ The service provides user registration, email confirmation, login, logout, refre
    ```bash
    docker compose up -d postgres
    ```
-5. Configure the JWT secret and database credentials for your environment.
+5. Configure the JWT secret, database credentials, and SMTP credentials for your environment.
 6. Run the application:
    ```bash
-   dotnet run --project Raycynix.Services.AuthService.csproj
+   dotnet run --project src/Raycynix.Services.AuthService.csproj
    ```
 
 ### Run With Docker Compose
@@ -81,7 +81,44 @@ Base route: `/api/v1/auth`
 | `POST` | `/logout` | Revokes the active refresh token and deletes the refresh-token cookie. |
 | `POST` | `/refresh` | Rotates the active refresh token and returns a new access token. |
 
-Swagger UI is available at `/swagger` in the Development environment.
+Swagger UI is available at `/swagger` in the Development environment. The root path `/` redirects to `/swagger` in Development.
+
+## Configuration
+
+The service uses Raycynix typed configuration and validates required configuration sections at startup. Sensitive values such as the JWT secret, database password, and SMTP credentials should be supplied through the configured secret provider or environment-specific configuration.
+
+Required security settings:
+
+```json
+"SecurityConfiguration": {
+  "Jwt": {
+    "Authority": "https://auth.raycynix.com",
+    "Issuer": "raycynix-auth",
+    "Audience": "raycynix-services",
+    "AccessTokenLifetime": "00:15:00",
+    "RefreshTokenLifetime": "14.00:00:00",
+    "ClockSkew": "00:01:00",
+    "RequireHttpsMetadata": true,
+    "Secret": "<jwt-signing-secret>"
+  }
+}
+```
+
+Required database settings:
+
+```json
+"DatabaseConfiguration": {
+  "ConnectionConfiguration": {
+    "Host": "localhost",
+    "Port": 5432,
+    "Name": "raycynix_auth_dev",
+    "Username": "postgres",
+    "Password": "postgres"
+  },
+  "UseMigrations": false,
+  "EnsureCreated": true
+}
+```
 
 ## Authentication Flow
 
@@ -141,10 +178,10 @@ When `SignIn:RequireConfirmedEmail` is `true`, users must confirm their email ad
 
 ## Background Services
 
-Expired refresh tokens are removed by `RefreshTokensCleanupBackground`. The service is controlled through `BackgroundServicesConfiguration` and validated through Raycynix typed configuration.
+Expired refresh tokens are removed by `RefreshTokensCleanupBackground`. The service is controlled through `BackgroundServiceConfiguration` and validated through Raycynix typed configuration.
 
 ```json
-"BackgroundServicesConfiguration": {
+"BackgroundServiceConfiguration": {
   "RefreshTokensCleanupEnabled": true,
   "RefreshTokensCleanupInterval": "24:00:00"
 }
@@ -160,6 +197,8 @@ The solution follows Clean Architecture to ensure separation of concerns and tes
 * **Application**: Business logic, interfaces, DTOs
 * **Domain**: Entities and domain rules
 * **Infrastructure**: Database and external integrations
+
+The application project and source folders are located under `src/`.
 
 ## Documentation
 
