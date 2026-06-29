@@ -25,7 +25,7 @@ public class BackgroundServiceConfiguration
     /// <summary>
     /// Validates the background service configuration.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
+    /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when refresh-token cleanup is enabled, and the cleanup interval is not greater than zero.
     /// </exception>
     public void Validate()
