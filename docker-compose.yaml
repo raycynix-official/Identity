@@ -8,7 +8,8 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:?}
+      ASPNETCORE_URLS: http://+:5000
 
       DatabaseConfiguration__ConnectionConfiguration__Host: ${POSTGRES_HOST:?}
       DatabaseConfiguration__ConnectionConfiguration__Port: ${POSTGRES_PORT:?}
@@ -21,8 +22,8 @@ services:
       SecurityConfiguration__Jwt__Issuer: ${JWT_ISSUER:?}
       SecurityConfiguration__Jwt__Audience: ${JWT_AUDIENCE:?}
 
-      SmtpConfiguration__Username: ${SMTP_USERNAME:?}
-      SmtpConfiguration__Password: ${SMTP_PASSWORD:?}
+      EmailConfiguration__SmtpConfiguration__Username: ${SMTP_USERNAME:?}
+      EmailConfiguration__SmtpConfiguration__Password: ${SMTP_PASSWORD:?}
     ports:
       - "5000:5000"
     restart: unless-stopped
