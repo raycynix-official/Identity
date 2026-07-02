@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Raycynix.Extensions.Database.AspNetCore.Identity;
+using Raycynix.Extensions.Email.Abstractions.Exceptions;
 using Raycynix.Extensions.Email.Abstractions.Interfaces;
 using Raycynix.Extensions.Email.Abstractions.Models;
 using Raycynix.Extensions.Exceptions;
@@ -359,9 +360,11 @@ public class AuthService(
         var result = await emailSender.SendAsync(message, cancellationToken);
         if (!result.Succeeded)
         {
-            logger.LogError("Email confirmation message failed for user:{userId}. Provider:{provider}. Error:{error}",
-                user.Id, result.Provider, result.ErrorMessage);
-            throw new InvalidOperationException("Email confirmation message could not be sent");
+            logger.LogError(
+                "Email confirmation message failed for user:{userId}. Provider:{provider}. ErrorCode:{errorCode}. Error:{error}",
+                user.Id, result.Provider, result.ErrorCode, result.ErrorMessage);
+            throw new EmailSendException(
+                $"Email confirmation message could not be sent by provider '{result.Provider}'. ErrorCode: {result.ErrorCode}. Error: {result.ErrorMessage}");
         }
 
         logger.LogInformation("Email confirmation message sent for user:{userId}. Provider:{provider}",
