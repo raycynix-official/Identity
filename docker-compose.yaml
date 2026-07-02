@@ -17,6 +17,9 @@ services:
       DatabaseConfiguration__ConnectionConfiguration__Password: ${POSTGRES_PASSWORD:?}
 
       SecurityConfiguration__Jwt__Secret: ${JWT_SECRET:?}
+      SecurityConfiguration__Jwt__Authority: ${JWT_AUTHORITY:?}
+      SecurityConfiguration__Jwt__Issuer: ${JWT_ISSUER:?}
+      SecurityConfiguration__Jwt__Audience: ${JWT_AUDIENCE:?}
 
       SmtpConfiguration__Username: ${SMTP_USERNAME:?}
       SmtpConfiguration__Password: ${SMTP_PASSWORD:?}
@@ -34,7 +37,7 @@ services:
     volumes:
       - postgres-auth:/var/lib/postgresql
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d raycynix_auth_dev" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:?} -d ${POSTGRES_DB:?}" ]
       interval: 5s
       timeout: 5s
       retries: 10
