@@ -10,8 +10,8 @@ RUN dotnet publish "src/Raycynix.Services.AuthService.csproj" -c Release -o /app
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
-ENV ASPNETCORE_URLS=http://+:8080
-EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:5000
+EXPOSE 5000
 
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Raycynix.Services.AuthService.dll"]
