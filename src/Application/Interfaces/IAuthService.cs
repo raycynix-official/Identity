@@ -72,7 +72,7 @@ public interface IAuthService
     /// <exception cref="Raycynix.Extensions.Exceptions.UnauthorizedException">
     /// Thrown when the user does not exist.
     /// </exception>
-    Task<string> GeneratePasswordResetTokenAsync(PasswordResetTokenRequest request,
+    Task SendPasswordResetLinkAsync(PasswordResetLinkRequest request,
         CancellationToken cancellationToken = default);
 
     /// <summary>

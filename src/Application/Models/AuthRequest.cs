@@ -69,7 +69,7 @@ public record ConfirmEmailRequest(
 /// Represents the data required to request a password reset token.
 /// </summary>
 /// <param name="Email">The user's email address.</param>
-public record PasswordResetTokenRequest(
+public record PasswordResetLinkRequest(
     [Required]
     [EmailAddress]
     string Email);

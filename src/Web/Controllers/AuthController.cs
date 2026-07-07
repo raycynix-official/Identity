@@ -121,14 +121,14 @@ public class AuthController(
     /// <param name="request">The password reset token request.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>The generated password reset token.</returns>
-    [HttpPost(AuthRoutes.PasswordResetToken)]
+    [HttpPost(AuthRoutes.PasswordResetSend)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IdentityTokenResponse))]
-    public async Task<IActionResult> GeneratePasswordResetTokenAsync([FromBody] PasswordResetTokenRequest request,
+    public async Task<IActionResult> SendPasswordResetLinkAsync([FromBody] PasswordResetLinkRequest request,
         CancellationToken cancellationToken)
     {
-        var token = await authService.GeneratePasswordResetTokenAsync(request, cancellationToken);
+        await authService.SendPasswordResetLinkAsync(request, cancellationToken);
 
-        return Ok(new IdentityTokenResponse(token));
+        return NoContent();
     }
 
     /// <summary>

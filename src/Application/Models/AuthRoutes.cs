@@ -45,12 +45,14 @@ public static class AuthRoutes
     /// <summary>
     /// The password reset token route.
     /// </summary>
-    public const string PasswordResetToken = "password-reset/token";
+    public const string PasswordResetSend = "password-reset/send";
 
     /// <summary>
     /// The password reset route.
     /// </summary>
     public const string PasswordReset = "password-reset/reset";
+    
+    public const string PasswordResetPath = $"{Base}/{PasswordReset}";
 
     /// <summary>
     /// The logout route.
