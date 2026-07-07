@@ -5,7 +5,10 @@ All notable changes to this project are documented in this file.
 ## [0.4.0]
 
 ### Added
-* Added NUnit test coverage for refresh-token hashing, refresh-token entity behavior, and security configuration validation.
+* Added NUnit test coverage for auth route contracts, request validation, refresh-token cookies, refresh-token hashing, refresh-token entity behavior, and security configuration validation.
+
+### Fixed
+* Fixed request DTO validation attributes so DataAnnotations are applied to generated record properties.
 
 ### Security
 * Added typed configuration for refresh-token revocation policy behavior.
