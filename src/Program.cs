@@ -38,6 +38,13 @@ if (string.IsNullOrWhiteSpace(jwtSecret)) throw new InvalidOperationException("J
 if (Encoding.UTF8.GetByteCount(jwtSecret) < 32)
     throw new InvalidOperationException("JWT Secret key must be at least 32 bytes long");
 
+var refreshTokenHashSecret = builder.Configuration["SecurityConfiguration:RefreshTokenHashSecret"];
+if (!string.IsNullOrWhiteSpace(refreshTokenHashSecret) &&
+    Encoding.UTF8.GetByteCount(refreshTokenHashSecret) < 32)
+{
+    throw new InvalidOperationException("Refresh token hash secret must be at least 32 bytes long");
+}
+
 var rateLimitConfiguration = builder.Configuration.GetSection(nameof(RateLimitConfiguration))
     .Get<RateLimitConfiguration>();
 if (rateLimitConfiguration is null) throw new InvalidOperationException("Rate limit configuration not found");

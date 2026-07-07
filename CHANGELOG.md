@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.4.0]
+
+### Security
+* Added typed configuration for refresh-token revocation policy behavior.
+* Added HMAC-SHA-256 hashing for newly issued refresh tokens with legacy SHA-256 lookup compatibility.
+* Added refresh-token revocation reasons, last-used timestamps, and revocation source token hashes.
+* Added refresh-token reuse detection during refresh and login token rotation.
+* Added active-session revocation when reuse of an already revoked refresh token is detected.
+* Added refresh-token indexes for active session and revocation reason queries.
+
 ## [0.3.2]
 
 ### Added
