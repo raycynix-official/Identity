@@ -63,15 +63,11 @@ public interface IAuthService
     Task ConfirmEmailAsync(ConfirmEmailRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Generates a password reset token for an existing user.
+    /// Sends a password reset link when the request can be matched to an eligible user.
     /// </summary>
     /// <param name="request">The email address that identifies the user.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
-    /// <returns>The generated password reset token.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is <see langword="null"/>.</exception>
-    /// <exception cref="Raycynix.Extensions.Exceptions.UnauthorizedException">
-    /// Thrown when the user does not exist.
-    /// </exception>
     Task SendPasswordResetLinkAsync(PasswordResetLinkRequest request,
         CancellationToken cancellationToken = default);
 
