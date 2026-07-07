@@ -251,6 +251,14 @@ The application project and source folders are located under `src/`.
 
 Public types and methods are documented with XML comments. Release builds generate the XML documentation file.
 
+## Tests
+
+Run the test suite with:
+
+```bash
+dotnet test Raycynix.Services.AuthService.sln
+```
+
 ## Tech Stack
 * **Framework:** ASP.NET Core (`net10.0`)
 * **Identity:** ASP.NET Core Identity
