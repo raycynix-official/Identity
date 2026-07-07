@@ -61,10 +61,9 @@ public class AuthService(
         var result = await userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
+            var errorCodes = string.Join(", ", result.Errors.Select(e => e.Code));
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            logger.LogError(
-                "User trying to register with username:{UserName} and email:{Email}.\nGet`s errors:{Errors}",
-                request.UserName, request.Email, errors);
+            logger.LogError("User registration failed. ErrorCodes:{ErrorCodes}", errorCodes);
 
             throw new ConflictException(errors);
         }
@@ -88,7 +87,7 @@ public class AuthService(
             : await userManager.FindByNameAsync(login);
         if (user is null)
         {
-            logger.LogError("Login Failed: user with login:{login} not found", login);
+            logger.LogError("Login failed: user was not found");
             throw new UnauthorizedException("Invalid login or password");
         }
 
@@ -152,8 +151,7 @@ public class AuthService(
         var user = await userManager.FindByEmailAsync(request.Email.Trim());
         if (user is null)
         {
-            logger.LogWarning("Email confirmation token generation failed: user with email:{email} not found",
-                request.Email);
+            logger.LogWarning("Email confirmation token generation failed: user was not found");
             throw new UnauthorizedException("User not found");
         }
 
@@ -173,21 +171,21 @@ public class AuthService(
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
+
         var user = await userManager.FindByEmailAsync(request.Email.Trim());
         if (user is null)
         {
-            logger.LogWarning("Password reset link generation failed: user with email:{email} not found",
-                request.Email);
-            throw new UnauthorizedException("User not found");
+            logger.LogWarning("Password reset link generation skipped: user was not found");
+            return;
         }
 
         if (identityOptions.Value.SignIn.RequireConfirmedEmail && !await userManager.IsEmailConfirmedAsync(user))
         {
-            logger.LogWarning("Password reset link generation failed: email already confirmed for user:{userId}",
+            logger.LogWarning("Password reset link generation skipped: email is not confirmed for user:{userId}",
                 user.Id);
-            throw new UnauthorizedAccessException("Email is not confirmed. Please confirm your email first.");
+            return;
         }
-        
+
         var resetPasswordToken = await userManager.GeneratePasswordResetTokenAsync(user);
         await SendPasswordResetAsync(user, resetPasswordToken, cancellationToken);
     }
@@ -200,7 +198,7 @@ public class AuthService(
         var user = await userManager.FindByEmailAsync(request.Email.Trim());
         if (user is null)
         {
-            logger.LogWarning("Email confirmation failed: user with email:{email} not found", request.Email);
+            logger.LogWarning("Email confirmation failed: user was not found");
             throw new UnauthorizedException("User not found");
         }
 
@@ -210,8 +208,8 @@ public class AuthService(
             return;
         }
 
-        var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-        logger.LogWarning("Email confirmation failed for user:{userId}. Errors:{errors}", user.Id, errors);
+        var errorCodes = string.Join(", ", result.Errors.Select(e => e.Code));
+        logger.LogWarning("Email confirmation failed for user:{userId}. ErrorCodes:{errorCodes}", user.Id, errorCodes);
         throw new UnauthorizedException("Invalid email confirmation token");
     }
 
@@ -223,11 +221,11 @@ public class AuthService(
         var user = await userManager.FindByEmailAsync(request.Email.Trim());
         if (user is null)
         {
-            logger.LogWarning("Password reset failed: user with email:{email} not found", request.Email);
+            logger.LogWarning("Password reset failed: user was not found");
             throw new UnauthorizedException("User not found");
         }
 
-        var result = await userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        var result = await userManager.ResetPasswordAsync(user, DecodeIdentityToken(request.Token), request.NewPassword);
         if (result.Succeeded)
         {
             await RevokeRefreshTokensAsync(user.Id, cancellationToken);
@@ -235,7 +233,8 @@ public class AuthService(
         }
 
         var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-        logger.LogWarning("Password reset failed for user:{userId}. Errors:{errors}", user.Id, errors);
+        var errorCodes = string.Join(", ", result.Errors.Select(e => e.Code));
+        logger.LogWarning("Password reset failed for user:{userId}. ErrorCodes:{errorCodes}", user.Id, errorCodes);
         throw new ConflictException(errors);
     }
 
@@ -385,13 +384,13 @@ public class AuthService(
         var resetPasswordLink = CreatePasswordResetLink(user.Email!, resetPasswordToken);
         var htmlBody = await RenderResetPasswordTemplateAsync(
             user,
-            resetPasswordToken,
+            resetPasswordLink,
             cancellationToken);
 
         var message = new EmailMessage
         {
             To = [new EmailAddress(user.Email!, user.UserName ?? user.Email!)],
-            Subject = "Reseting Password",
+            Subject = "Reset your Raycynix account password",
             Body = EmailBody.FromHtml(
                 htmlBody,
                 $"""
@@ -466,8 +465,8 @@ public class AuthService(
             CreateEndpointUrl(AuthRoutes.PasswordResetPath),
             new Dictionary<string, string?>
             {
-                [nameof(ConfirmEmailRequest.Email).ToLowerInvariant()] = email,
-                [nameof(ConfirmEmailRequest.Token).ToLowerInvariant()] = encodedToken
+                [nameof(ResetPasswordRequest.Email).ToLowerInvariant()] = email,
+                [nameof(ResetPasswordRequest.Token).ToLowerInvariant()] = encodedToken
             });
     }
 
@@ -476,7 +475,7 @@ public class AuthService(
         var authority = jwtSettings.Value.Authority;
         if (string.IsNullOrWhiteSpace(authority))
         {
-            throw new InvalidOperationException("JWT authority is required to build email confirmation links");
+            throw new InvalidOperationException("JWT authority is required to build account email links");
         }
 
         return $"{authority.TrimEnd('/')}/{route}";
