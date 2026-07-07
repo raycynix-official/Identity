@@ -44,12 +44,16 @@ public class UserRefreshTokenConfigurator : GenericConfigurator<UserRefreshToken
         
         entity.HasIndex(x => x.TokenHash).IsUnique();
         entity.Property(x => x.TokenHash).IsRequired();
+        entity.HasIndex(x => new { x.UserId, x.RevokedAt, x.ExpiresAt });
+        entity.HasIndex(x => new { x.UserId, x.RevocationReason });
         
         entity.Property(x => x.CreatedAt).IsRequired();
+        entity.Property(x => x.LastUsedAt).IsRequired(false);
         entity.Property(x => x.ExpiresAt).IsRequired();
         
         entity.Property(x => x.RevokedAt).IsRequired(false);
         entity.Property(x => x.ReplacedByTokenHash).IsRequired(false);
+        entity.Property(x => x.RevokedByTokenHash).IsRequired(false);
         entity.Property(x => x.RevocationReason)
             .HasConversion<string>()
             .IsRequired(false);

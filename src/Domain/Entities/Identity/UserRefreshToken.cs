@@ -38,6 +38,11 @@ public sealed class UserRefreshToken
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
+    /// Gets or sets the UTC date and time when the refresh token was last used.
+    /// </summary>
+    public DateTimeOffset? LastUsedAt { get; set; }
+
+    /// <summary>
     /// Gets or sets the UTC date and time when the refresh token expires.
     /// </summary>
     public DateTimeOffset ExpiresAt { get; set; }
@@ -51,6 +56,11 @@ public sealed class UserRefreshToken
     /// Gets or sets the hash of the refresh token that replaced this token.
     /// </summary>
     public string? ReplacedByTokenHash { get; set; }
+
+    /// <summary>
+    /// Gets or sets the hash of the refresh token that caused this token to be revoked.
+    /// </summary>
+    public string? RevokedByTokenHash { get; set; }
 
     /// <summary>
     /// Gets or sets the reason why the refresh token was revoked.

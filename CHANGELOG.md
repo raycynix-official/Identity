@@ -5,7 +5,10 @@ All notable changes to this project are documented in this file.
 ## [0.4.0]
 
 ### Security
-* Added refresh-token revocation reasons and reuse detection that revokes active sessions for the affected user.
+* Added refresh-token revocation reasons, last-used timestamps, and revocation source token hashes.
+* Added refresh-token reuse detection during refresh and login token rotation.
+* Added active-session revocation when reuse of an already revoked refresh token is detected.
+* Added refresh-token indexes for active session and revocation reason queries.
 
 ## [0.3.2]
 

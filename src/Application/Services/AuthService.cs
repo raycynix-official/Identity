@@ -131,10 +131,15 @@ public class AuthService(
             if (oldUserRefreshToken is not null)
             {
                 logger.LogInformation("Old refresh token found. Revoking it");
-                oldUserRefreshToken.RevokedAt = DateTimeOffset.UtcNow;
-                oldUserRefreshToken.RevocationReason = UserRefreshTokenRevocationReason.LoginRotation;
-                oldUserRefreshToken.ReplacedByTokenHash = newUserRefreshToken.TokenHash;
+                RevokeRefreshToken(
+                    oldUserRefreshToken,
+                    UserRefreshTokenRevocationReason.LoginRotation,
+                    replacedByTokenHash: newUserRefreshToken.TokenHash);
                 databaseContext.Update(oldUserRefreshToken);
+            }
+            else
+            {
+                await HandleRefreshTokenReuseAsync(refreshTokenHash, cancellationToken);
             }
         }
 
@@ -234,6 +239,7 @@ public class AuthService(
             await RevokeActiveRefreshTokensAsync(
                 user.Id,
                 UserRefreshTokenRevocationReason.PasswordReset,
+                revokedByTokenHash: null,
                 cancellationToken);
             return;
         }
@@ -268,8 +274,7 @@ public class AuthService(
             throw new UnauthorizedException("Refresh token not found");
         }
 
-        userRefreshToken.RevokedAt = DateTimeOffset.UtcNow;
-        userRefreshToken.RevocationReason = UserRefreshTokenRevocationReason.Logout;
+        RevokeRefreshToken(userRefreshToken, UserRefreshTokenRevocationReason.Logout);
 
         await databaseContext.SaveChangesAsync(cancellationToken);
     }
@@ -318,9 +323,11 @@ public class AuthService(
         var newUserRefreshToken = user.GenerateUserRefreshToken(newRefreshToken, jwtSettings.Value);
         await databaseContext.AddAsync(newUserRefreshToken, cancellationToken);
 
-        userRefreshToken.RevokedAt = DateTimeOffset.UtcNow;
-        userRefreshToken.RevocationReason = UserRefreshTokenRevocationReason.RefreshRotation;
-        userRefreshToken.ReplacedByTokenHash = newUserRefreshToken.TokenHash;
+        userRefreshToken.LastUsedAt = DateTimeOffset.UtcNow;
+        RevokeRefreshToken(
+            userRefreshToken,
+            UserRefreshTokenRevocationReason.RefreshRotation,
+            replacedByTokenHash: newUserRefreshToken.TokenHash);
         databaseContext.Update(userRefreshToken);
         await databaseContext.SaveChangesAsync(cancellationToken);
 
@@ -344,12 +351,14 @@ public class AuthService(
         await RevokeActiveRefreshTokensAsync(
             reusedRefreshToken.UserId,
             UserRefreshTokenRevocationReason.ReuseDetected,
+            revokedByTokenHash: reusedRefreshToken.TokenHash,
             cancellationToken);
     }
 
     private async Task RevokeActiveRefreshTokensAsync(
         Guid userId,
         UserRefreshTokenRevocationReason reason,
+        string? revokedByTokenHash,
         CancellationToken cancellationToken)
     {
         var activeRefreshTokens = await databaseContext.Set<UserRefreshToken>()
@@ -366,11 +375,27 @@ public class AuthService(
         var revokedAt = DateTimeOffset.UtcNow;
         foreach (var refreshToken in activeRefreshTokens)
         {
-            refreshToken.RevokedAt = revokedAt;
-            refreshToken.RevocationReason = reason;
+            RevokeRefreshToken(
+                refreshToken,
+                reason,
+                revokedAt: revokedAt,
+                revokedByTokenHash: revokedByTokenHash);
         }
 
         await databaseContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void RevokeRefreshToken(
+        UserRefreshToken refreshToken,
+        UserRefreshTokenRevocationReason reason,
+        DateTimeOffset? revokedAt = null,
+        string? replacedByTokenHash = null,
+        string? revokedByTokenHash = null)
+    {
+        refreshToken.RevokedAt = revokedAt ?? DateTimeOffset.UtcNow;
+        refreshToken.RevocationReason = reason;
+        refreshToken.ReplacedByTokenHash = replacedByTokenHash;
+        refreshToken.RevokedByTokenHash = revokedByTokenHash;
     }
 
     private async Task SendEmailConfirmationAsync(User user, string confirmationToken,

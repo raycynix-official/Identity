@@ -134,6 +134,8 @@ Required database settings:
 * Refresh-token cookies are `HttpOnly`, `Secure`, and `SameSite=Strict`.
 * Login reads the existing refresh-token cookie, revokes the active token for the authenticated user, and links it to the newly issued refresh token.
 * Refreshing a token revokes the previous refresh token and links it to the replacement token hash.
+* Refresh-token revocations store a reason and, when applicable, the token hash that replaced or caused the revocation.
+* Reuse of an already revoked refresh token revokes active refresh tokens for the affected user.
 * Password reset links are sent by email and use ASP.NET Core Identity password reset tokens.
 * Successful password reset revokes the user's active refresh tokens.
 
