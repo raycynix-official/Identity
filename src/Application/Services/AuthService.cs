@@ -38,6 +38,7 @@ namespace Raycynix.Services.AuthService.Application.Services;
 /// <param name="identityOptions">The ASP.NET Core Identity behavior configuration options.</param>
 /// <param name="emailSender">The email sender used to deliver account emails.</param>
 /// <param name="emailConfirmationConfiguration">The email confirmation delivery configuration options.</param>
+/// <param name="resetPasswordConfiguration">The reset-password email delivery configuration options.</param>
 public class AuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
@@ -167,6 +168,7 @@ public class AuthService(
     }
 
 
+    /// <inheritdoc />
     public async Task SendPasswordResetLinkAsync(PasswordResetLinkRequest request,
         CancellationToken cancellationToken = default)
     {

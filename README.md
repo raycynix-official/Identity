@@ -76,7 +76,7 @@ Base route: `/api/v1/auth`
 | `POST` | `/email-confirmation/send`    | Sends a new email confirmation link.                                                          |
 | `GET`  | `/email-confirmation/confirm` | Confirms a user's email address from an email confirmation link.                              |
 | `POST` | `/email-confirmation/confirm` | Confirms a user's email address.                                                              |
-| `POST` | `/password-reset/token`       | Generates a password reset token.                                                             |
+| `POST` | `/password-reset/send`        | Sends a password reset link by email.                                                         |
 | `POST` | `/password-reset/reset`       | Resets a user's password.                                                                     |
 | `POST` | `/logout`                     | Revokes the active refresh token and deletes the refresh-token cookie.                        |
 | `POST` | `/refresh`                    | Rotates the active refresh token and returns a new access token.                              |
@@ -134,7 +134,8 @@ Required database settings:
 * Refresh-token cookies are `HttpOnly`, `Secure`, and `SameSite=Strict`.
 * Login reads the existing refresh-token cookie, revokes the active token for the authenticated user, and links it to the newly issued refresh token.
 * Refreshing a token revokes the previous refresh token and links it to the replacement token hash.
-* Password reset uses ASP.NET Core Identity password reset tokens and revokes the user's active refresh tokens after a successful reset.
+* Password reset links are sent by email and use ASP.NET Core Identity password reset tokens.
+* Successful password reset revokes the user's active refresh tokens.
 
 ## Email Configuration
 

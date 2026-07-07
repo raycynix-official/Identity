@@ -51,7 +51,10 @@ public static class AuthRoutes
     /// The password reset route.
     /// </summary>
     public const string PasswordReset = "password-reset/reset";
-    
+
+    /// <summary>
+    /// The absolute-path segment used for password reset links.
+    /// </summary>
     public const string PasswordResetPath = $"{Base}/{PasswordReset}";
 
     /// <summary>
