@@ -59,6 +59,9 @@ public static class DependencyInjection
             services
                 .AddRaycynixConfigurationValidator<ResetPasswordConfiguration, ResetPasswordConfigurationValidator>();
 
+            services.AddRaycynixConfiguration<RateLimitConfiguration>(configuration, requireSection: true);
+            services.AddRaycynixConfigurationValidator<RateLimitConfiguration, RateLimitConfigurationValidator>();
+
             services.AddScoped<IOperationContext, OperationContext>();
 
             services.AddRaycynixLogging();
