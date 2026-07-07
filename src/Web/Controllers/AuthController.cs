@@ -116,19 +116,19 @@ public class AuthController(
     }
 
     /// <summary>
-    /// Generates a password reset token.
+    /// Sends a password reset link.
     /// </summary>
-    /// <param name="request">The password reset token request.</param>
+    /// <param name="request">The password reset link request.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
-    /// <returns>The generated password reset token.</returns>
-    [HttpPost(AuthRoutes.PasswordResetToken)]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IdentityTokenResponse))]
-    public async Task<IActionResult> GeneratePasswordResetTokenAsync([FromBody] PasswordResetTokenRequest request,
+    /// <returns>An empty response when the password reset link is sent or skipped.</returns>
+    [HttpPost(AuthRoutes.PasswordResetSend)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> SendPasswordResetLinkAsync([FromBody] PasswordResetLinkRequest request,
         CancellationToken cancellationToken)
     {
-        var token = await authService.GeneratePasswordResetTokenAsync(request, cancellationToken);
+        await authService.SendPasswordResetLinkAsync(request, cancellationToken);
 
-        return Ok(new IdentityTokenResponse(token));
+        return NoContent();
     }
 
     /// <summary>

@@ -38,6 +38,7 @@ namespace Raycynix.Services.AuthService.Application.Services;
 /// <param name="identityOptions">The ASP.NET Core Identity behavior configuration options.</param>
 /// <param name="emailSender">The email sender used to deliver account emails.</param>
 /// <param name="emailConfirmationConfiguration">The email confirmation delivery configuration options.</param>
+/// <param name="resetPasswordConfiguration">The reset-password email delivery configuration options.</param>
 public class AuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
@@ -47,8 +48,9 @@ public class AuthService(
         databaseContext,
     Raycynix.Extensions.Logging.Abstractions.ILogger<AuthService> logger,
     IOptions<IdentityOptions> identityOptions,
-    IEmailSender emailSender,
-    IOptions<EmailConfirmationConfiguration> emailConfirmationConfiguration) : IAuthService
+    IOptions<EmailConfirmationConfiguration> emailConfirmationConfiguration,
+    IOptions<ResetPasswordConfiguration> resetPasswordConfiguration,
+    IEmailSender emailSender) : IAuthService
 {
     /// <inheritdoc />
     public async Task<RegisterResult> RegisterAsync(RegisterRequest request,
@@ -167,6 +169,31 @@ public class AuthService(
         await SendEmailConfirmationAsync(user, emailConfirmationToken, cancellationToken);
     }
 
+
+    /// <inheritdoc />
+    public async Task SendPasswordResetLinkAsync(PasswordResetLinkRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var user = await userManager.FindByEmailAsync(request.Email.Trim());
+        if (user is null)
+        {
+            logger.LogWarning("Password reset link generation failed: user with email:{email} not found",
+                request.Email);
+            throw new UnauthorizedException("User not found");
+        }
+
+        if (identityOptions.Value.SignIn.RequireConfirmedEmail && !await userManager.IsEmailConfirmedAsync(user))
+        {
+            logger.LogWarning("Password reset link generation failed: email already confirmed for user:{userId}",
+                user.Id);
+            throw new UnauthorizedAccessException("Email is not confirmed. Please confirm your email first.");
+        }
+        
+        var resetPasswordToken = await userManager.GeneratePasswordResetTokenAsync(user);
+        await SendPasswordResetAsync(user, resetPasswordToken, cancellationToken);
+    }
+
     /// <inheritdoc />
     public async Task ConfirmEmailAsync(ConfirmEmailRequest request, CancellationToken cancellationToken = default)
     {
@@ -191,23 +218,6 @@ public class AuthService(
     }
 
     /// <inheritdoc />
-    public async Task<string> GeneratePasswordResetTokenAsync(PasswordResetTokenRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-
-        var user = await userManager.FindByEmailAsync(request.Email.Trim());
-        if (user is null)
-        {
-            logger.LogWarning("Password reset token generation failed: user with email:{email} not found",
-                request.Email);
-            throw new UnauthorizedException("User not found");
-        }
-
-        return await userManager.GeneratePasswordResetTokenAsync(user);
-    }
-
-    /// <inheritdoc />
     public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -219,7 +229,7 @@ public class AuthService(
             throw new UnauthorizedException("User not found");
         }
 
-        var result = await userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        var result = await userManager.ResetPasswordAsync(user, DecodeIdentityToken(request.Token), request.NewPassword);
         if (result.Succeeded)
         {
             await RevokeRefreshTokensAsync(user.Id, cancellationToken);
@@ -349,12 +359,12 @@ public class AuthService(
             Body = EmailBody.FromHtml(
                 htmlBody,
                 $"""
-                Confirm your Raycynix account email.
+                 Confirm your Raycynix account email.
 
-                {confirmationLink}
+                 {confirmationLink}
 
-                Open this link to finish account setup.
-                """)
+                 Open this link to finish account setup.
+                 """)
         };
 
         var result = await emailSender.SendAsync(message, cancellationToken);
@@ -371,6 +381,44 @@ public class AuthService(
             user.Id, result.Provider);
     }
 
+    private async Task SendPasswordResetAsync(User user, string resetPasswordToken,
+        CancellationToken cancellationToken)
+    {
+        var resetPasswordLink = CreatePasswordResetLink(user.Email!, resetPasswordToken);
+        var htmlBody = await RenderResetPasswordTemplateAsync(
+            user,
+            resetPasswordLink,
+            cancellationToken);
+
+        var message = new EmailMessage
+        {
+            To = [new EmailAddress(user.Email!, user.UserName ?? user.Email!)],
+            Subject = "Reseting Password",
+            Body = EmailBody.FromHtml(
+                htmlBody,
+                $"""
+                 To reset your password, please click the link below:
+
+                 {resetPasswordLink}
+
+                 Open this link to reset your password.
+                 """)
+        };
+
+        var result = await emailSender.SendAsync(message, cancellationToken);
+        if (!result.Succeeded)
+        {
+            logger.LogError(
+                "Reset password message failed for user:{userId}. Provider:{provider}. ErrorCode:{errorCode}. Error:{error}",
+                user.Id, result.Provider, result.ErrorCode, result.ErrorMessage);
+            throw new EmailSendException(
+                $"Reset password message could not be sent by provider '{result.Provider}'. ErrorCode: {result.ErrorCode}. Error: {result.ErrorMessage}");
+        }
+
+        logger.LogInformation("Reset password message sent for user:{userId}. Provider:{provider}",
+            user.Id, result.Provider);
+    }
+
     private async Task<string> RenderEmailConfirmationTemplateAsync(User user, string confirmationLink,
         CancellationToken cancellationToken)
     {
@@ -381,6 +429,17 @@ public class AuthService(
             .Replace("{{UserName}}", WebUtility.HtmlEncode(user.UserName ?? user.Email), StringComparison.Ordinal)
             .Replace("{{Email}}", WebUtility.HtmlEncode(user.Email), StringComparison.Ordinal)
             .Replace("{{ConfirmationLink}}", WebUtility.HtmlEncode(confirmationLink), StringComparison.Ordinal);
+    }
+
+    private async Task<string> RenderResetPasswordTemplateAsync(User user, string resetPasswordLink,
+        CancellationToken cancellationToken)
+    {
+        var templatePath = ResolveTemplatePath(resetPasswordConfiguration.Value.TemplatePath);
+        var template = await File.ReadAllTextAsync(templatePath, cancellationToken);
+
+        return template
+            .Replace("{{UserName}}", WebUtility.HtmlEncode(user.UserName ?? user.Email), StringComparison.Ordinal)
+            .Replace("{{ResetPasswordLink}}", WebUtility.HtmlEncode(resetPasswordLink), StringComparison.Ordinal);
     }
 
     private static string ResolveTemplatePath(string templatePath)
@@ -394,7 +453,7 @@ public class AuthService(
     {
         var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(confirmationToken));
         return QueryHelpers.AddQueryString(
-            CreateEmailConfirmationEndpointUrl(),
+            CreateEndpointUrl(AuthRoutes.EmailConfirmationConfirmPath),
             new Dictionary<string, string?>
             {
                 [nameof(ConfirmEmailRequest.Email).ToLowerInvariant()] = email,
@@ -402,7 +461,19 @@ public class AuthService(
             });
     }
 
-    private string CreateEmailConfirmationEndpointUrl()
+    private string CreatePasswordResetLink(string email, string resetPasswordToken)
+    {
+        var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetPasswordToken));
+        return QueryHelpers.AddQueryString(
+            CreateEndpointUrl(AuthRoutes.PasswordResetPath),
+            new Dictionary<string, string?>
+            {
+                [nameof(ResetPasswordRequest.Email).ToLowerInvariant()] = email,
+                [nameof(ResetPasswordRequest.Token).ToLowerInvariant()] = encodedToken
+            });
+    }
+
+    private string CreateEndpointUrl(string route)
     {
         var authority = jwtSettings.Value.Authority;
         if (string.IsNullOrWhiteSpace(authority))
@@ -410,7 +481,7 @@ public class AuthService(
             throw new InvalidOperationException("JWT authority is required to build email confirmation links");
         }
 
-        return $"{authority.TrimEnd('/')}/{AuthRoutes.EmailConfirmationConfirmPath}";
+        return $"{authority.TrimEnd('/')}/{route}";
     }
 
     private static string DecodeIdentityToken(string token)

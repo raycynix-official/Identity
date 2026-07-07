@@ -49,6 +49,7 @@
     </PropertyGroup>
     
     <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <WarningsNotAsErrors>CS1591</WarningsNotAsErrors>
     </PropertyGroup>
 

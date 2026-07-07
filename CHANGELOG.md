@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.3.2]
+
+### Added
+* Added password reset email delivery with a configurable HTML template.
+* Added reset-password configuration validation.
+
+### Changed
+* Password reset token requests now send reset links by email instead of returning tokens in API responses.
+* Password reset links now use encoded Identity tokens and the reset endpoint route constants.
+* Updated password reset API documentation, README endpoint documentation, and email template wording.
+
 ## [0.3.1]
 
 ### Changed

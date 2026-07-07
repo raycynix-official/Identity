@@ -48,11 +48,16 @@ public static class DependencyInjection
             services
                 .AddRaycynixConfigurationValidator<BackgroundServiceConfiguration,
                     BackgroundServiceConfigurationValidator>();
+            
             services.AddRaycynixConfiguration<EmailConfirmationConfiguration>(
                 configuration,
                 requireSection: true);
             services.AddRaycynixConfigurationValidator<EmailConfirmationConfiguration,
                 EmailConfirmationConfigurationValidator>();
+            
+            services.AddRaycynixConfiguration<ResetPasswordConfiguration>(configuration, requireSection: true);
+            services
+                .AddRaycynixConfigurationValidator<ResetPasswordConfiguration, ResetPasswordConfigurationValidator>();
 
             services.AddScoped<IOperationContext, OperationContext>();
 
