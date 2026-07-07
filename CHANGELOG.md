@@ -5,6 +5,7 @@ All notable changes to this project are documented in this file.
 ## [0.4.0]
 
 ### Security
+* Added typed configuration for refresh-token revocation policy behavior.
 * Added refresh-token revocation reasons, last-used timestamps, and revocation source token hashes.
 * Added refresh-token reuse detection during refresh and login token rotation.
 * Added active-session revocation when reuse of an already revoked refresh token is detected.

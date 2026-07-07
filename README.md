@@ -203,6 +203,23 @@ Sensitive authentication endpoints are protected by a fixed-window rate limit.
 }
 ```
 
+## Refresh-Token Revocation
+
+Refresh-token revocation behavior is controlled through typed configuration.
+
+```json
+{
+   "RefreshTokenRevocationConfiguration": {
+      "RevokeExistingTokenOnLogin": true,
+      "DetectReuseOnLogin": true,
+      "DetectReuseOnRefresh": true,
+      "RevokeActiveTokensOnReuse": true,
+      "RevokeActiveTokensOnPasswordReset": true,
+      "TrackLastUsedOnRefresh": true
+   }
+}
+```
+
 ## Background Services
 
 Expired refresh tokens are removed by `RefreshTokensCleanupBackground`. The service is controlled through `BackgroundServiceConfiguration` and validated through Raycynix typed configuration.

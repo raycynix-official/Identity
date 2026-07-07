@@ -39,6 +39,7 @@ namespace Raycynix.Services.AuthService.Application.Services;
 /// <param name="emailSender">The email sender used to deliver account emails.</param>
 /// <param name="emailConfirmationConfiguration">The email confirmation delivery configuration options.</param>
 /// <param name="resetPasswordConfiguration">The reset-password email delivery configuration options.</param>
+/// <param name="refreshTokenRevocationConfiguration">The refresh-token revocation policy configuration options.</param>
 public class AuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
@@ -50,6 +51,7 @@ public class AuthService(
     IOptions<IdentityOptions> identityOptions,
     IOptions<EmailConfirmationConfiguration> emailConfirmationConfiguration,
     IOptions<ResetPasswordConfiguration> resetPasswordConfiguration,
+    IOptions<RefreshTokenRevocationConfiguration> refreshTokenRevocationConfiguration,
     IEmailSender emailSender) : IAuthService
 {
     /// <inheritdoc />
@@ -116,7 +118,10 @@ public class AuthService(
 
         var newUserRefreshToken = user.GenerateUserRefreshToken(newRefreshToken, jwtSettings.Value);
 
-        if (refreshToken is not null)
+        var revocationConfiguration = refreshTokenRevocationConfiguration.Value;
+        if (refreshToken is not null &&
+            (revocationConfiguration.RevokeExistingTokenOnLogin ||
+             revocationConfiguration.DetectReuseOnLogin))
         {
             logger.LogInformation("Refresh token is not null. Checking for old refresh token");
             var refreshTokenHash = SecurityExtensions.HashRefreshToken(refreshToken);
@@ -128,7 +133,7 @@ public class AuthService(
                              token.RevokedAt == null &&
                              token.ExpiresAt > DateTimeOffset.UtcNow,
                     cancellationToken);
-            if (oldUserRefreshToken is not null)
+            if (oldUserRefreshToken is not null && revocationConfiguration.RevokeExistingTokenOnLogin)
             {
                 logger.LogInformation("Old refresh token found. Revoking it");
                 RevokeRefreshToken(
@@ -137,7 +142,7 @@ public class AuthService(
                     replacedByTokenHash: newUserRefreshToken.TokenHash);
                 databaseContext.Update(oldUserRefreshToken);
             }
-            else
+            else if (oldUserRefreshToken is null && revocationConfiguration.DetectReuseOnLogin)
             {
                 await HandleRefreshTokenReuseAsync(refreshTokenHash, cancellationToken);
             }
@@ -236,11 +241,15 @@ public class AuthService(
         var result = await userManager.ResetPasswordAsync(user, DecodeIdentityToken(request.Token), request.NewPassword);
         if (result.Succeeded)
         {
-            await RevokeActiveRefreshTokensAsync(
-                user.Id,
-                UserRefreshTokenRevocationReason.PasswordReset,
-                revokedByTokenHash: null,
-                cancellationToken);
+            if (refreshTokenRevocationConfiguration.Value.RevokeActiveTokensOnPasswordReset)
+            {
+                await RevokeActiveRefreshTokensAsync(
+                    user.Id,
+                    UserRefreshTokenRevocationReason.PasswordReset,
+                    revokedByTokenHash: null,
+                    cancellationToken);
+            }
+
             return;
         }
 
@@ -303,7 +312,11 @@ public class AuthService(
                 cancellationToken);
         if (userRefreshToken is null)
         {
-            await HandleRefreshTokenReuseAsync(tokenHash, cancellationToken);
+            if (refreshTokenRevocationConfiguration.Value.DetectReuseOnRefresh)
+            {
+                await HandleRefreshTokenReuseAsync(tokenHash, cancellationToken);
+            }
+
             logger.LogWarning("Refresh token failed: refresh token not found");
             throw new UnauthorizedException("Refresh token not found");
         }
@@ -323,7 +336,11 @@ public class AuthService(
         var newUserRefreshToken = user.GenerateUserRefreshToken(newRefreshToken, jwtSettings.Value);
         await databaseContext.AddAsync(newUserRefreshToken, cancellationToken);
 
-        userRefreshToken.LastUsedAt = DateTimeOffset.UtcNow;
+        if (refreshTokenRevocationConfiguration.Value.TrackLastUsedOnRefresh)
+        {
+            userRefreshToken.LastUsedAt = DateTimeOffset.UtcNow;
+        }
+
         RevokeRefreshToken(
             userRefreshToken,
             UserRefreshTokenRevocationReason.RefreshRotation,
@@ -348,6 +365,11 @@ public class AuthService(
         }
 
         logger.LogWarning("Refresh token reuse detected for user:{userId}", reusedRefreshToken.UserId);
+        if (!refreshTokenRevocationConfiguration.Value.RevokeActiveTokensOnReuse)
+        {
+            return;
+        }
+
         await RevokeActiveRefreshTokensAsync(
             reusedRefreshToken.UserId,
             UserRefreshTokenRevocationReason.ReuseDetected,

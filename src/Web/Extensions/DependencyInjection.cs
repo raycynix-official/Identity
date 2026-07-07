@@ -62,6 +62,12 @@ public static class DependencyInjection
             services.AddRaycynixConfiguration<RateLimitConfiguration>(configuration, requireSection: true);
             services.AddRaycynixConfigurationValidator<RateLimitConfiguration, RateLimitConfigurationValidator>();
 
+            services.AddRaycynixConfiguration<RefreshTokenRevocationConfiguration>(
+                configuration,
+                requireSection: true);
+            services.AddRaycynixConfigurationValidator<RefreshTokenRevocationConfiguration,
+                RefreshTokenRevocationConfigurationValidator>();
+
             services.AddScoped<IOperationContext, OperationContext>();
 
             services.AddRaycynixLogging();
