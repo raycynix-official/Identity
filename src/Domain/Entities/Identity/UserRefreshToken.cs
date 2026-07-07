@@ -53,6 +53,11 @@ public sealed class UserRefreshToken
     public string? ReplacedByTokenHash { get; set; }
 
     /// <summary>
+    /// Gets or sets the reason why the refresh token was revoked.
+    /// </summary>
+    public UserRefreshTokenRevocationReason? RevocationReason { get; set; }
+
+    /// <summary>
     /// Gets a value indicating whether the refresh token can still be used.
     /// </summary>
     public bool IsActive => RevokedAt is null && ExpiresAt > DateTimeOffset.UtcNow;

@@ -50,6 +50,9 @@ public class UserRefreshTokenConfigurator : GenericConfigurator<UserRefreshToken
         
         entity.Property(x => x.RevokedAt).IsRequired(false);
         entity.Property(x => x.ReplacedByTokenHash).IsRequired(false);
+        entity.Property(x => x.RevocationReason)
+            .HasConversion<string>()
+            .IsRequired(false);
 
         entity.Ignore(x => x.IsActive);
     }

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.4.0]
+
+### Security
+* Added refresh-token revocation reasons and reuse detection that revokes active sessions for the affected user.
+
 ## [0.3.2]
 
 ### Added

@@ -132,6 +132,7 @@ public class AuthService(
             {
                 logger.LogInformation("Old refresh token found. Revoking it");
                 oldUserRefreshToken.RevokedAt = DateTimeOffset.UtcNow;
+                oldUserRefreshToken.RevocationReason = UserRefreshTokenRevocationReason.LoginRotation;
                 oldUserRefreshToken.ReplacedByTokenHash = newUserRefreshToken.TokenHash;
                 databaseContext.Update(oldUserRefreshToken);
             }
@@ -230,7 +231,10 @@ public class AuthService(
         var result = await userManager.ResetPasswordAsync(user, DecodeIdentityToken(request.Token), request.NewPassword);
         if (result.Succeeded)
         {
-            await RevokeRefreshTokensAsync(user.Id, cancellationToken);
+            await RevokeActiveRefreshTokensAsync(
+                user.Id,
+                UserRefreshTokenRevocationReason.PasswordReset,
+                cancellationToken);
             return;
         }
 
@@ -265,6 +269,7 @@ public class AuthService(
         }
 
         userRefreshToken.RevokedAt = DateTimeOffset.UtcNow;
+        userRefreshToken.RevocationReason = UserRefreshTokenRevocationReason.Logout;
 
         await databaseContext.SaveChangesAsync(cancellationToken);
     }
@@ -293,6 +298,7 @@ public class AuthService(
                 cancellationToken);
         if (userRefreshToken is null)
         {
+            await HandleRefreshTokenReuseAsync(tokenHash, cancellationToken);
             logger.LogWarning("Refresh token failed: refresh token not found");
             throw new UnauthorizedException("Refresh token not found");
         }
@@ -313,6 +319,7 @@ public class AuthService(
         await databaseContext.AddAsync(newUserRefreshToken, cancellationToken);
 
         userRefreshToken.RevokedAt = DateTimeOffset.UtcNow;
+        userRefreshToken.RevocationReason = UserRefreshTokenRevocationReason.RefreshRotation;
         userRefreshToken.ReplacedByTokenHash = newUserRefreshToken.TokenHash;
         databaseContext.Update(userRefreshToken);
         await databaseContext.SaveChangesAsync(cancellationToken);
@@ -320,7 +327,30 @@ public class AuthService(
         return new AuthResult(accessToken.TokenString(), accessToken.ValidTo, newRefreshToken);
     }
 
-    private async Task RevokeRefreshTokensAsync(Guid userId, CancellationToken cancellationToken)
+    private async Task HandleRefreshTokenReuseAsync(string tokenHash, CancellationToken cancellationToken)
+    {
+        var reusedRefreshToken = await databaseContext.Set<UserRefreshToken>()
+            .FirstOrDefaultAsync(
+                token => token.TokenHash == tokenHash &&
+                         token.RevokedAt != null &&
+                         token.ExpiresAt > DateTimeOffset.UtcNow,
+                cancellationToken);
+        if (reusedRefreshToken is null)
+        {
+            return;
+        }
+
+        logger.LogWarning("Refresh token reuse detected for user:{userId}", reusedRefreshToken.UserId);
+        await RevokeActiveRefreshTokensAsync(
+            reusedRefreshToken.UserId,
+            UserRefreshTokenRevocationReason.ReuseDetected,
+            cancellationToken);
+    }
+
+    private async Task RevokeActiveRefreshTokensAsync(
+        Guid userId,
+        UserRefreshTokenRevocationReason reason,
+        CancellationToken cancellationToken)
     {
         var activeRefreshTokens = await databaseContext.Set<UserRefreshToken>()
             .Where(token => token.UserId == userId &&
@@ -337,6 +367,7 @@ public class AuthService(
         foreach (var refreshToken in activeRefreshTokens)
         {
             refreshToken.RevokedAt = revokedAt;
+            refreshToken.RevocationReason = reason;
         }
 
         await databaseContext.SaveChangesAsync(cancellationToken);
