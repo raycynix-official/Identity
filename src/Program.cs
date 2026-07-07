@@ -6,6 +6,7 @@
 //     http://www.apache.org/licenses/LICENSE-2.0
 
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Raycynix.Extensions.Configuration.AspNetCore;
@@ -33,17 +34,35 @@ if (jwtSettings is null) throw new InvalidOperationException("JWT Configuration 
 
 var jwtSecret = builder.Configuration["SecurityConfiguration:Jwt:Secret"];
 if (string.IsNullOrWhiteSpace(jwtSecret)) throw new InvalidOperationException("JWT Secret key not found");
+if (Encoding.UTF8.GetByteCount(jwtSecret) < 32)
+    throw new InvalidOperationException("JWT Secret key must be at least 32 bytes long");
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("auth-sensitive", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+});
 
 builder.Services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
 {
     options.RequireHttpsMetadata = jwtSettings.RequireHttpsMetadata;
-    options.SaveToken = true;
+    options.SaveToken = false;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
+        RequireExpirationTime = true,
+        RequireSignedTokens = true,
         ValidIssuer = jwtSettings.Issuer,
         ValidAudience = jwtSettings.Audience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
@@ -53,10 +72,12 @@ builder.Services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.Authenticatio
 
 var app = builder.Build();
 
-app.MapControllers();
-
 app.UseRaycynixExceptions();
 app.UseRaycynixSecurity();
+app.UseRateLimiter();
+
+app.MapControllers();
+
 await app.InitializeRaycynixDatabaseAsync();
 
 if (app.Environment.IsDevelopment())

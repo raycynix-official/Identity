@@ -53,12 +53,15 @@ public static class RefreshTokenCookieExtensions
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Strict
+            SameSite = SameSiteMode.Strict,
+            Path = "/api/v1/auth",
+            IsEssential = true
         };
 
         if (lifetime is not null)
         {
             options.Expires = DateTimeOffset.UtcNow.Add(lifetime.Value);
+            options.MaxAge = lifetime.Value;
         }
 
         return options;

@@ -6,6 +6,7 @@
 //     http://www.apache.org/licenses/LICENSE-2.0
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using Raycynix.Extensions.Security.Configurations;
 using Raycynix.Services.AuthService.Application.Interfaces;
@@ -26,6 +27,8 @@ public class AuthController(
     IOptions<JwtConfiguration> jwtSettings
 ) : ControllerBase
 {
+    private const string AuthSensitiveRateLimitPolicy = "auth-sensitive";
+
     /// <summary>
     /// Registers a new user and sends an email confirmation link.
     /// </summary>
@@ -33,7 +36,9 @@ public class AuthController(
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>The registration response.</returns>
     [HttpPost(AuthRoutes.Registration)]
+    [EnableRateLimiting(AuthSensitiveRateLimitPolicy)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RegisterResponse))]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request,
         CancellationToken cancellationToken)
     {
@@ -49,7 +54,9 @@ public class AuthController(
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>The access token response.</returns>
     [HttpPost(AuthRoutes.Login)]
+    [EnableRateLimiting(AuthSensitiveRateLimitPolicy)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
         var refreshToken = Request.Cookies.GetRefreshToken();
@@ -72,7 +79,9 @@ public class AuthController(
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>An empty response when the email confirmation link is sent.</returns>
     [HttpPost(AuthRoutes.EmailConfirmationSend)]
+    [EnableRateLimiting(AuthSensitiveRateLimitPolicy)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> SendEmailConfirmationLinkAsync(
         [FromBody] EmailConfirmationLinkRequest request,
         CancellationToken cancellationToken)
@@ -122,7 +131,9 @@ public class AuthController(
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>An empty response when the password reset link is sent or skipped.</returns>
     [HttpPost(AuthRoutes.PasswordResetSend)]
+    [EnableRateLimiting(AuthSensitiveRateLimitPolicy)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> SendPasswordResetLinkAsync([FromBody] PasswordResetLinkRequest request,
         CancellationToken cancellationToken)
     {
@@ -138,7 +149,9 @@ public class AuthController(
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>An empty response when the password is reset.</returns>
     [HttpPost(AuthRoutes.PasswordReset)]
+    [EnableRateLimiting(AuthSensitiveRateLimitPolicy)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordRequest request,
         CancellationToken cancellationToken)
     {
@@ -171,7 +184,9 @@ public class AuthController(
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <returns>The refreshed access token response.</returns>
     [HttpPost(AuthRoutes.Refresh)]
+    [EnableRateLimiting(AuthSensitiveRateLimitPolicy)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> RefreshTokenAsync(CancellationToken cancellationToken)
     {
         var refreshToken = Request.Cookies.GetRefreshToken();

@@ -370,10 +370,10 @@ public class AuthService(
         if (!result.Succeeded)
         {
             logger.LogError(
-                "Email confirmation message failed for user:{userId}. Provider:{provider}. ErrorCode:{errorCode}. Error:{error}",
-                user.Id, result.Provider, result.ErrorCode, result.ErrorMessage);
+                "Email confirmation message failed for user:{userId}. Provider:{provider}. ErrorCode:{errorCode}",
+                user.Id, result.Provider, result.ErrorCode);
             throw new EmailSendException(
-                $"Email confirmation message could not be sent by provider '{result.Provider}'. ErrorCode: {result.ErrorCode}. Error: {result.ErrorMessage}");
+                $"Email confirmation message could not be sent by provider '{result.Provider}'. ErrorCode: {result.ErrorCode}");
         }
 
         logger.LogInformation("Email confirmation message sent for user:{userId}. Provider:{provider}",
@@ -408,10 +408,10 @@ public class AuthService(
         if (!result.Succeeded)
         {
             logger.LogError(
-                "Reset password message failed for user:{userId}. Provider:{provider}. ErrorCode:{errorCode}. Error:{error}",
-                user.Id, result.Provider, result.ErrorCode, result.ErrorMessage);
+                "Reset password message failed for user:{userId}. Provider:{provider}. ErrorCode:{errorCode}",
+                user.Id, result.Provider, result.ErrorCode);
             throw new EmailSendException(
-                $"Reset password message could not be sent by provider '{result.Provider}'. ErrorCode: {result.ErrorCode}. Error: {result.ErrorMessage}");
+                $"Reset password message could not be sent by provider '{result.Provider}'. ErrorCode: {result.ErrorCode}");
         }
 
         logger.LogInformation("Reset password message sent for user:{userId}. Provider:{provider}",

@@ -13,6 +13,13 @@ All notable changes to this project are documented in this file.
 * Password reset links now use encoded Identity tokens and the reset endpoint route constants.
 * Updated password reset API documentation, README endpoint documentation, and email template wording.
 
+### Security
+* Added fixed-window rate limiting for sensitive authentication endpoints.
+* Added startup validation for minimum JWT signing secret length.
+* Disabled JWT bearer token persistence in authentication properties.
+* Restricted refresh-token cookie scope and added explicit cookie max age.
+* Removed provider error messages from account email delivery logs and exceptions.
+
 ## [0.3.1]
 
 ### Changed
