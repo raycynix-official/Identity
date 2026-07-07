@@ -4,6 +4,9 @@ All notable changes to this project are documented in this file.
 
 ## [0.4.0]
 
+### Added
+* Added NUnit test coverage for refresh-token hashing, refresh-token entity behavior, and security configuration validation.
+
 ### Security
 * Added typed configuration for refresh-token revocation policy behavior.
 * Added HMAC-SHA-256 hashing for newly issued refresh tokens with legacy SHA-256 lookup compatibility.

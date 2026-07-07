@@ -4,6 +4,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2DD4557E-EEF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raycynix.Services.AuthService", "src/Raycynix.Services.AuthService.csproj", "{8DBB03EA-AF53-47FD-9B36-3821C3AB64A8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{C8233D92-50BC-493A-AEB0-9E2EAA9933D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raycynix.Services.AuthService.Tests", "tests\Raycynix.Services.AuthService.Tests\Raycynix.Services.AuthService.Tests.csproj", "{AAB7F7C3-5533-48C7-971F-F82EDB7A5496}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,8 +18,13 @@ Global
 		{8DBB03EA-AF53-47FD-9B36-3821C3AB64A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8DBB03EA-AF53-47FD-9B36-3821C3AB64A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8DBB03EA-AF53-47FD-9B36-3821C3AB64A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAB7F7C3-5533-48C7-971F-F82EDB7A5496}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAB7F7C3-5533-48C7-971F-F82EDB7A5496}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAB7F7C3-5533-48C7-971F-F82EDB7A5496}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAB7F7C3-5533-48C7-971F-F82EDB7A5496}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8DBB03EA-AF53-47FD-9B36-3821C3AB64A8} = {2DD4557E-EEFA-43FD-AD05-4933C99FBC07}
+		{AAB7F7C3-5533-48C7-971F-F82EDB7A5496} = {C8233D92-50BC-493A-AEB0-9E2EAA9933D6}
 	EndGlobalSection
 EndGlobal
