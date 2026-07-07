@@ -1,7 +1,7 @@
 # Raycynix.Services.AuthService
 
 ![.NET Version](https://img.shields.io/badge/.NET-10.0-blue.svg)
-![Version](https://img.shields.io/badge/version-0.3.1-green.svg)
+![Version](https://img.shields.io/badge/version-0.3.2-green.svg)
 ![TeamCity build status](https://ci.raycynix.com/app/rest/builds/buildType:id:RSX_AuthService_GitHubDeploy/statusIcon.svg)
 
 Auth Service for the Raycynix ecosystem, built with ASP.NET Core, ASP.NET Core Identity, PostgreSQL, and .NET 10.
