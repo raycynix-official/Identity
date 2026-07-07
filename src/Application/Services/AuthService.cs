@@ -229,7 +229,7 @@ public class AuthService(
             throw new UnauthorizedException("User not found");
         }
 
-        var result = await userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        var result = await userManager.ResetPasswordAsync(user, DecodeIdentityToken(request.Token), request.NewPassword);
         if (result.Succeeded)
         {
             await RevokeRefreshTokensAsync(user.Id, cancellationToken);
@@ -387,7 +387,7 @@ public class AuthService(
         var resetPasswordLink = CreatePasswordResetLink(user.Email!, resetPasswordToken);
         var htmlBody = await RenderResetPasswordTemplateAsync(
             user,
-            resetPasswordToken,
+            resetPasswordLink,
             cancellationToken);
 
         var message = new EmailMessage
@@ -468,8 +468,8 @@ public class AuthService(
             CreateEndpointUrl(AuthRoutes.PasswordResetPath),
             new Dictionary<string, string?>
             {
-                [nameof(ConfirmEmailRequest.Email).ToLowerInvariant()] = email,
-                [nameof(ConfirmEmailRequest.Token).ToLowerInvariant()] = encodedToken
+                [nameof(ResetPasswordRequest.Email).ToLowerInvariant()] = email,
+                [nameof(ResetPasswordRequest.Token).ToLowerInvariant()] = encodedToken
             });
     }
 
