@@ -66,18 +66,18 @@ public static class SecurityExtensions
         }
 
         /// <summary>
-        /// Creates a persisted refresh-token entity for the user from a raw refresh token.
+        /// Creates a persisted refresh-token entity for the user from a refresh-token hash.
         /// </summary>
-        /// <param name="refreshToken">The raw refresh token returned to the client.</param>
+        /// <param name="tokenHash">The refresh-token hash stored by the service.</param>
         /// <param name="jwtSettings">The JWT settings that define the refresh-token lifetime.</param>
         /// <returns>The refresh-token entity with the token hash and expiration date set.</returns>
-        public UserRefreshToken GenerateUserRefreshToken(string refreshToken,
+        public UserRefreshToken GenerateUserRefreshToken(string tokenHash,
             JwtConfiguration jwtSettings)
         {
             var token = new UserRefreshToken
             {
                 UserId = user.Id,
-                TokenHash = HashRefreshToken(refreshToken),
+                TokenHash = tokenHash,
                 ExpiresAt = DateTimeOffset.UtcNow.Add(jwtSettings.RefreshTokenLifetime)
             };
 
@@ -86,19 +86,19 @@ public static class SecurityExtensions
     }
 
     /// <summary>
-    /// Creates a persisted refresh-token entity for a user from a raw refresh token.
+    /// Creates a persisted refresh-token entity for a user from a refresh-token hash.
     /// </summary>
     /// <param name="userId">The identifier of the user that owns the refresh token.</param>
-    /// <param name="refreshToken">The raw refresh token returned to the client.</param>
+    /// <param name="tokenHash">The refresh-token hash stored by the service.</param>
     /// <param name="jwtSettings">The JWT settings that define the refresh-token lifetime.</param>
     /// <returns>The refresh-token entity with the token hash and expiration date set.</returns>
-    public static UserRefreshToken GenerateUserRefreshToken(Guid userId, string refreshToken,
+    public static UserRefreshToken GenerateUserRefreshToken(Guid userId, string tokenHash,
         JwtConfiguration jwtSettings)
     {
         var token = new UserRefreshToken
         {
             UserId = userId,
-            TokenHash = HashRefreshToken(refreshToken),
+            TokenHash = tokenHash,
             ExpiresAt = DateTimeOffset.UtcNow.Add(jwtSettings.RefreshTokenLifetime)
         };
 
@@ -137,6 +137,18 @@ public static class SecurityExtensions
             var secret = await secretResolver.GetSecretAsync("SecurityConfiguration:Jwt:Secret");
             return secret ?? throw new InvalidOperationException("JWT Secret key not found");
         }
+
+        /// <summary>
+        /// Reads the refresh-token hashing secret from the configured secret provider.
+        /// </summary>
+        /// <returns>The configured refresh-token hashing secret, or the JWT secret when no dedicated secret is configured.</returns>
+        public async Task<string> GetRefreshTokenHashSecretAsync()
+        {
+            var secret = await secretResolver.GetSecretAsync("SecurityConfiguration:RefreshTokenHashSecret");
+            return string.IsNullOrWhiteSpace(secret)
+                ? await secretResolver.GetJwtSecretAsync()
+                : secret;
+        }
     }
 
     /// <summary>
@@ -153,8 +165,22 @@ public static class SecurityExtensions
     /// Hashes a raw refresh token before it is stored or compared.
     /// </summary>
     /// <param name="refreshToken">The raw refresh token.</param>
-    /// <returns>The SHA-256 hash of the refresh token encoded as Base64.</returns>
-    public static string HashRefreshToken(string refreshToken)
+    /// <param name="secret">The server-side HMAC secret.</param>
+    /// <returns>The HMAC-SHA-256 hash of the refresh token encoded as Base64.</returns>
+    public static string HashRefreshToken(string refreshToken, string secret)
+    {
+        var secretBytes = Encoding.UTF8.GetBytes(secret);
+        var tokenBytes = Encoding.UTF8.GetBytes(refreshToken);
+        var bytes = HMACSHA256.HashData(secretBytes, tokenBytes);
+        return Convert.ToBase64String(bytes);
+    }
+
+    /// <summary>
+    /// Hashes a raw refresh token using the legacy unsalted SHA-256 format.
+    /// </summary>
+    /// <param name="refreshToken">The raw refresh token.</param>
+    /// <returns>The legacy SHA-256 hash of the refresh token encoded as Base64.</returns>
+    public static string HashRefreshTokenLegacy(string refreshToken)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(refreshToken));
         return Convert.ToBase64String(bytes);

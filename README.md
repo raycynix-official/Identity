@@ -101,7 +101,8 @@ Required security settings:
          "ClockSkew": "00:01:00",
          "RequireHttpsMetadata": true,
          "Secret": "<jwt-signing-secret>"
-      }
+      },
+      "RefreshTokenHashSecret": "<optional-refresh-token-hmac-secret>"
    }
 }
 ```
@@ -130,7 +131,7 @@ Required database settings:
 * Registration creates a user, generates an ASP.NET Core Identity email confirmation token, and sends a confirmation link by email.
 * Login requires a confirmed email address when `IdentityOptions:SignIn:RequireConfirmedEmail` is enabled.
 * Refresh tokens are generated from cryptographically random bytes.
-* Refresh tokens are stored in the database as SHA-256 hashes.
+* Refresh tokens are stored in the database as HMAC-SHA-256 hashes. Legacy SHA-256 hashes are accepted during token lookup for migration compatibility.
 * Refresh-token cookies are `HttpOnly`, `Secure`, and `SameSite=Strict`.
 * Login reads the existing refresh-token cookie, revokes the active token for the authenticated user, and links it to the newly issued refresh token.
 * Refreshing a token revokes the previous refresh token and links it to the replacement token hash.
