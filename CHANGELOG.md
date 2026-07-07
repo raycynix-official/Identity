@@ -15,6 +15,7 @@ All notable changes to this project are documented in this file.
 
 ### Security
 * Added fixed-window rate limiting for sensitive authentication endpoints.
+* Added typed configuration and validation for authentication rate limits.
 * Added startup validation for minimum JWT signing secret length.
 * Disabled JWT bearer token persistence in authentication properties.
 * Restricted refresh-token cookie scope and added explicit cookie max age.

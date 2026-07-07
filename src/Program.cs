@@ -15,6 +15,7 @@ using Raycynix.Extensions.Exceptions.AspNetCore;
 using Raycynix.Extensions.Logging;
 using Raycynix.Extensions.Security.AspNetCore;
 using Raycynix.Extensions.Security.Configurations;
+using Raycynix.Services.AuthService.Domain.Configurations;
 using Raycynix.Services.AuthService.Web.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,6 +38,11 @@ if (string.IsNullOrWhiteSpace(jwtSecret)) throw new InvalidOperationException("J
 if (Encoding.UTF8.GetByteCount(jwtSecret) < 32)
     throw new InvalidOperationException("JWT Secret key must be at least 32 bytes long");
 
+var rateLimitConfiguration = builder.Configuration.GetSection(nameof(RateLimitConfiguration))
+    .Get<RateLimitConfiguration>();
+if (rateLimitConfiguration is null) throw new InvalidOperationException("Rate limit configuration not found");
+rateLimitConfiguration.Validate();
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -45,9 +51,9 @@ builder.Services.AddRateLimiter(options =>
             context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 10,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0
+                PermitLimit = rateLimitConfiguration.PermitLimit,
+                Window = rateLimitConfiguration.Window,
+                QueueLimit = rateLimitConfiguration.QueueLimit
             }));
 });
 

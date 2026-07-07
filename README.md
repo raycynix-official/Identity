@@ -187,6 +187,20 @@ Identity behavior is controlled through the standard ASP.NET Core Identity optio
 
 When `SignIn:RequireConfirmedEmail` is `true`, users must confirm their email address before login. When it is `false`, email confirmation tokens can still be generated and confirmed, but login does not require confirmation.
 
+## Rate Limiting
+
+Sensitive authentication endpoints are protected by a fixed-window rate limit.
+
+```json
+{
+   "RateLimitConfiguration": {
+      "PermitLimit": 10,
+      "Window": "00:01:00",
+      "QueueLimit": 0
+   }
+}
+```
+
 ## Background Services
 
 Expired refresh tokens are removed by `RefreshTokensCleanupBackground`. The service is controlled through `BackgroundServiceConfiguration` and validated through Raycynix typed configuration.
