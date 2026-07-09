@@ -2,12 +2,12 @@ using Raycynix.Services.AuthService.Domain.Configurations;
 
 namespace Raycynix.Services.AuthService.Tests.Domain.Configurations;
 
-public class RateLimitConfigurationTests
+public class RateLimitOptionsTests
 {
     [Test]
     public void Validate_DoesNotThrow_ForDefaultConfiguration()
     {
-        var configuration = new RateLimitConfiguration();
+        var configuration = new RateLimitOptions();
 
         Assert.DoesNotThrow(() => configuration.Validate());
     }
@@ -15,7 +15,7 @@ public class RateLimitConfigurationTests
     [Test]
     public void Validate_Throws_WhenPermitLimitIsNotPositive()
     {
-        var configuration = new RateLimitConfiguration
+        var configuration = new RateLimitOptions
         {
             PermitLimit = 0
         };
@@ -26,7 +26,7 @@ public class RateLimitConfigurationTests
     [Test]
     public void Validate_Throws_WhenWindowIsNotPositive()
     {
-        var configuration = new RateLimitConfiguration
+        var configuration = new RateLimitOptions
         {
             Window = TimeSpan.Zero
         };
@@ -37,7 +37,7 @@ public class RateLimitConfigurationTests
     [Test]
     public void Validate_Throws_WhenQueueLimitIsNegative()
     {
-        var configuration = new RateLimitConfiguration
+        var configuration = new RateLimitOptions
         {
             QueueLimit = -1
         };

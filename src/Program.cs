@@ -45,8 +45,8 @@ if (!string.IsNullOrWhiteSpace(refreshTokenHashSecret) &&
     throw new InvalidOperationException("Refresh token hash secret must be at least 32 bytes long");
 }
 
-var rateLimitConfiguration = builder.Configuration.GetSection(nameof(RateLimitConfiguration))
-    .Get<RateLimitConfiguration>();
+var rateLimitConfiguration = builder.Configuration.GetSection(nameof(RateLimitOptions))
+    .Get<RateLimitOptions>();
 if (rateLimitConfiguration is null) throw new InvalidOperationException("Rate limit configuration not found");
 rateLimitConfiguration.Validate();
 

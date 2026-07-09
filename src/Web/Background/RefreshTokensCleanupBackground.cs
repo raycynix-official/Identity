@@ -22,7 +22,7 @@ namespace Raycynix.Services.AuthService.Web.Background;
 /// <param name="serviceScopeFactory">The factory used to create scopes for database cleanup work.</param>
 public class RefreshTokensCleanupBackground(
     Raycynix.Extensions.Logging.Abstractions.ILogger<RefreshTokensCleanupBackground> logger,
-    IConfigurationAccessor<BackgroundServiceConfiguration> backgroundServicesConfiguration,
+    IConfigurationAccessor<BackgroundServiceOptions> backgroundServicesConfiguration,
     IServiceScopeFactory serviceScopeFactory)
     : BackgroundService
 {

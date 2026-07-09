@@ -1,23 +1,22 @@
-﻿// Copyright 2026 Raycynix
+// Copyright 2026 Raycynix
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 // 
-// http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 
 using Raycynix.Extensions.Configuration.Abstractions.Interfaces;
 using Raycynix.Extensions.Configuration.Abstractions.Models;
-using Raycynix.Services.AuthService.Domain.Configurations.BackgroundServices;
 
 namespace Raycynix.Services.AuthService.Domain.Configurations.Validators;
 
 /// <summary>
-/// Validates background services configuration values.
+/// Validates email confirmation configuration values.
 /// </summary>
-public sealed class BackgroundServiceConfigurationValidator : IConfigurationValidator<BackgroundServiceConfiguration>
+public sealed class EmailConfirmationOptionsValidator : IConfigurationValidator<EmailConfirmationOptions>
 {
     /// <inheritdoc />
-    public ConfigurationValidationResult Validate(BackgroundServiceConfiguration options)
+    public ConfigurationValidationResult Validate(EmailConfirmationOptions options)
     {
         try
         {

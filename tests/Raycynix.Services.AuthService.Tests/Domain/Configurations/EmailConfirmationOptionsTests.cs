@@ -2,12 +2,12 @@ using Raycynix.Services.AuthService.Domain.Configurations;
 
 namespace Raycynix.Services.AuthService.Tests.Domain.Configurations;
 
-public class ResetPasswordConfigurationTests
+public class EmailConfirmationOptionsTests
 {
     [Test]
     public void Validate_DefaultConfiguration_DoesNotThrow()
     {
-        var configuration = new ResetPasswordConfiguration();
+        var configuration = new EmailConfirmationOptions();
 
         Assert.DoesNotThrow(configuration.Validate);
     }
@@ -16,7 +16,7 @@ public class ResetPasswordConfigurationTests
     [TestCase(" ")]
     public void Validate_WhenTemplatePathIsMissing_Throws(string templatePath)
     {
-        var configuration = new ResetPasswordConfiguration
+        var configuration = new EmailConfirmationOptions
         {
             TemplatePath = templatePath
         };

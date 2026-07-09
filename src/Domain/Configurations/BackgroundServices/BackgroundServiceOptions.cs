@@ -10,7 +10,7 @@ namespace Raycynix.Services.AuthService.Domain.Configurations.BackgroundServices
 /// <summary>
 /// Contains settings for optional background services.
 /// </summary>
-public class BackgroundServiceConfiguration
+public class BackgroundServiceOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether expired refresh tokens should be cleaned up in the background.

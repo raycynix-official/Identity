@@ -11,12 +11,12 @@ using Raycynix.Extensions.Configuration.Abstractions.Models;
 namespace Raycynix.Services.AuthService.Domain.Configurations.Validators;
 
 /// <summary>
-/// Validates email confirmation configuration values.
+/// Validates rate-limit configuration values.
 /// </summary>
-public sealed class EmailConfirmationConfigurationValidator : IConfigurationValidator<EmailConfirmationConfiguration>
+public sealed class RateLimitOptionsValidator : IConfigurationValidator<RateLimitOptions>
 {
     /// <inheritdoc />
-    public ConfigurationValidationResult Validate(EmailConfirmationConfiguration options)
+    public ConfigurationValidationResult Validate(RateLimitOptions options)
     {
         try
         {

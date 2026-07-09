@@ -6,10 +6,10 @@ namespace Raycynix.Services.AuthService.Domain.Configurations.Validators;
 /// <summary>
 /// Validates reset password configuration values. 
 /// </summary>
-public sealed class ResetPasswordConfigurationValidator : IConfigurationValidator<ResetPasswordConfiguration>
+public sealed class ResetPasswordOptionsValidator : IConfigurationValidator<ResetPasswordOptions>
 {
     /// <inheritdoc />
-    public ConfigurationValidationResult Validate(ResetPasswordConfiguration options)
+    public ConfigurationValidationResult Validate(ResetPasswordOptions options)
     {
         try
         {

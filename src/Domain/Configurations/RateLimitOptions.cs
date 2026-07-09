@@ -10,7 +10,7 @@ namespace Raycynix.Services.AuthService.Domain.Configurations;
 /// <summary>
 /// Contains rate-limit settings for sensitive authentication endpoints.
 /// </summary>
-public class RateLimitConfiguration
+public class RateLimitOptions
 {
     /// <summary>
     /// Gets or sets the maximum number of permitted requests in a fixed window.

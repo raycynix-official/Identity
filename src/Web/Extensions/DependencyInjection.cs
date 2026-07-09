@@ -42,31 +42,31 @@ public static class DependencyInjection
         {
             services.AddRaycynixExceptions();
 
-            services.AddRaycynixConfiguration<BackgroundServiceConfiguration>(
+            services.AddRaycynixConfiguration<BackgroundServiceOptions>(
                 configuration,
                 requireSection: true);
             services
-                .AddRaycynixConfigurationValidator<BackgroundServiceConfiguration,
-                    BackgroundServiceConfigurationValidator>();
+                .AddRaycynixConfigurationValidator<BackgroundServiceOptions,
+                    BackgroundServiceOptionsValidator>();
             
-            services.AddRaycynixConfiguration<EmailConfirmationConfiguration>(
+            services.AddRaycynixConfiguration<EmailConfirmationOptions>(
                 configuration,
                 requireSection: true);
-            services.AddRaycynixConfigurationValidator<EmailConfirmationConfiguration,
-                EmailConfirmationConfigurationValidator>();
+            services.AddRaycynixConfigurationValidator<EmailConfirmationOptions,
+                EmailConfirmationOptionsValidator>();
             
-            services.AddRaycynixConfiguration<ResetPasswordConfiguration>(configuration, requireSection: true);
+            services.AddRaycynixConfiguration<ResetPasswordOptions>(configuration, requireSection: true);
             services
-                .AddRaycynixConfigurationValidator<ResetPasswordConfiguration, ResetPasswordConfigurationValidator>();
+                .AddRaycynixConfigurationValidator<ResetPasswordOptions, ResetPasswordOptionsValidator>();
 
-            services.AddRaycynixConfiguration<RateLimitConfiguration>(configuration, requireSection: true);
-            services.AddRaycynixConfigurationValidator<RateLimitConfiguration, RateLimitConfigurationValidator>();
+            services.AddRaycynixConfiguration<RateLimitOptions>(configuration, requireSection: true);
+            services.AddRaycynixConfigurationValidator<RateLimitOptions, RateLimitOptionsValidator>();
 
-            services.AddRaycynixConfiguration<RefreshTokenRevocationConfiguration>(
+            services.AddRaycynixConfiguration<RefreshTokenRevocationOptions>(
                 configuration,
                 requireSection: true);
-            services.AddRaycynixConfigurationValidator<RefreshTokenRevocationConfiguration,
-                RefreshTokenRevocationConfigurationValidator>();
+            services.AddRaycynixConfigurationValidator<RefreshTokenRevocationOptions,
+                RefreshTokenRevocationOptionsValidator>();
 
             services.AddScoped<IOperationContext, OperationContext>();
 
@@ -92,8 +92,8 @@ public static class DependencyInjection
 
             services.AddScoped<IAuthService, Application.Services.AuthService>();
 
-            var backgroundServicesConfiguration = configuration.GetSection(nameof(BackgroundServiceConfiguration))
-                .Get<BackgroundServiceConfiguration>();
+            var backgroundServicesConfiguration = configuration.GetSection(nameof(BackgroundServiceOptions))
+                .Get<BackgroundServiceOptions>();
             if (backgroundServicesConfiguration is null)
                 throw new InvalidOperationException("Background services configuration not found");
 

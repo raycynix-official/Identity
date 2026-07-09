@@ -49,9 +49,9 @@ public class AuthService(
         databaseContext,
     Raycynix.Extensions.Logging.Abstractions.ILogger<AuthService> logger,
     IOptions<IdentityOptions> identityOptions,
-    IOptions<EmailConfirmationConfiguration> emailConfirmationConfiguration,
-    IOptions<ResetPasswordConfiguration> resetPasswordConfiguration,
-    IOptions<RefreshTokenRevocationConfiguration> refreshTokenRevocationConfiguration,
+    IOptions<EmailConfirmationOptions> emailConfirmationConfiguration,
+    IOptions<ResetPasswordOptions> resetPasswordConfiguration,
+    IOptions<RefreshTokenRevocationOptions> refreshTokenRevocationConfiguration,
     IEmailSender emailSender) : IAuthService
 {
     /// <inheritdoc />

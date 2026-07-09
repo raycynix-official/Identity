@@ -11,12 +11,13 @@ using Raycynix.Extensions.Configuration.Abstractions.Models;
 namespace Raycynix.Services.AuthService.Domain.Configurations.Validators;
 
 /// <summary>
-/// Validates rate-limit configuration values.
+/// Validates refresh-token revocation configuration values.
 /// </summary>
-public sealed class RateLimitConfigurationValidator : IConfigurationValidator<RateLimitConfiguration>
+public sealed class RefreshTokenRevocationOptionsValidator
+    : IConfigurationValidator<RefreshTokenRevocationOptions>
 {
     /// <inheritdoc />
-    public ConfigurationValidationResult Validate(RateLimitConfiguration options)
+    public ConfigurationValidationResult Validate(RefreshTokenRevocationOptions options)
     {
         try
         {

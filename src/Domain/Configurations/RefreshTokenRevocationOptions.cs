@@ -10,7 +10,7 @@ namespace Raycynix.Services.AuthService.Domain.Configurations;
 /// <summary>
 /// Contains refresh-token revocation policy settings.
 /// </summary>
-public class RefreshTokenRevocationConfiguration
+public class RefreshTokenRevocationOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether an existing active refresh-token cookie should be revoked on login.
