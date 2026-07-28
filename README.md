@@ -1,275 +1,287 @@
-# Raycynix.Services.AuthService
+# Raycynix Identity
 
-![.NET Version](https://img.shields.io/badge/.NET-10.0-blue.svg)
-![Version](https://img.shields.io/badge/version-0.3.2-green.svg)
-![TeamCity build status](https://ci.raycynix.com/app/rest/builds/buildType:id:RSX_AuthService_GitHubDeploy/statusIcon.svg)
+![.NET Version](https://img.shields.io/badge/.NET-10.0-512BD4.svg)
+![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)
+![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)
 
-Auth Service for the Raycynix ecosystem, built with ASP.NET Core, ASP.NET Core Identity, PostgreSQL, and .NET 10.
+Raycynix Identity is the identity and access platform for Raycynix products. The project is being designed both as a
+shared hosted identity service and as a self-hosted solution that organizations can configure and extend for their own
+applications.
 
-The service provides user registration, email confirmation, login, logout, refresh-token rotation, password reset, and expired refresh-token cleanup. Access tokens are returned in API responses, while refresh tokens are stored in secure HTTP-only cookies and persisted as SHA-256 hashes.
+The current release provides account authentication, email confirmation, password recovery, JWT access tokens, secure
+refresh-token rotation, session revocation, and PostgreSQL persistence. OAuth 2.0 and OpenID Connect provider
+capabilities are planned but are not implemented yet.
 
-## Getting Started
+## Current capabilities
 
-### Prerequisites
-* [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) for local PostgreSQL in containers
-* [JetBrains Rider](https://www.jetbrains.com/rider/) or another IDE
+- User registration with ASP.NET Core Identity.
+- Login by username or email.
+- Email confirmation and resend flows.
+- Password-reset email delivery.
+- JWT access-token issuance.
+- Cryptographically random refresh tokens stored as HMAC-SHA-256 hashes.
+- Refresh-token rotation, reuse detection, and active-session revocation.
+- Secure `HttpOnly`, `Secure`, and `SameSite=Strict` refresh-token cookies.
+- Identity lockout and configurable password requirements.
+- Fixed-window rate limiting for sensitive authentication endpoints.
+- Configurable cleanup of expired refresh tokens.
+- SMTP email delivery with HTML templates.
+- PostgreSQL persistence.
+- Swagger UI in the Development environment.
 
-### Run Locally
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/raycynix-official/Services.AuthService.git
-   ```
-2. Navigate to the project directory:
-   ```bash
-   cd Services.AuthService
-   ```
-3. Restore dependencies:
-   ```bash
-   dotnet restore
-   ```
-4. Start PostgreSQL:
-   ```bash
-   docker compose up -d postgres
-   ```
-5. Configure the JWT secret, database credentials, and SMTP credentials for your environment.
-6. Run the application:
-   ```bash
-   dotnet run --project src/Raycynix.Services.AuthService.csproj
-   ```
+## Project status
 
-### Run With Docker Compose
-For development, PostgreSQL can be started with Docker Compose:
+Raycynix Identity is under active development. The current HTTP API is an account and session service, not yet a
+standards-compliant OAuth 2.0 authorization server or OpenID Connect provider.
 
-```bash
-docker compose up -d postgres
+The planned direction includes:
+
+- OAuth 2.0 and OpenID Connect through OpenIddict.
+- Authorization Code flow with PKCE.
+- Standard discovery, JWKS, token, authorization, user-info, revocation, and logout endpoints.
+- Application, redirect URI, scope, consent, and authorization management.
+- Hosted multi-tenancy and a single-tenant self-hosted profile.
+- Custom branding, claims, email templates, webhooks, and extension contracts.
+- A separate worker process for outbox delivery and scheduled maintenance.
+- Container and orchestration assets for self-hosted deployments.
+
+## Solution layout
+
+```text
+Raycynix.Identity.sln
+├─ src/
+│  ├─ Raycynix.Identity.Host/
+│  └─ Raycynix.Identity.Abstractions/
+├─ orchestration/
+│  └─ Raycynix.Identity.AppHost/
+├─ workers/
+├─ deployments/
+└─ tests/
+   └─ Raycynix.Identity.Host.Tests/
 ```
 
-Available endpoints:
-* PostgreSQL: `localhost:5432`
+| Project                          | Responsibility                                                                                                       |
+|----------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| `Raycynix.Identity.Host`         | ASP.NET Core host, account API, application logic, Identity persistence, and the current background cleanup service. |
+| `Raycynix.Identity.Abstractions` | Standalone NuGet package containing public extension contracts without dependencies on Host internals.               |
+| `Raycynix.Identity.AppHost`      | Aspire orchestration entry point. Resource definitions are still being added.                                        |
+| `Raycynix.Identity.Host.Tests`   | Unit and contract tests for the current Host implementation.                                                         |
 
-PostgreSQL credentials from `docker-compose.yml`:
-* database: `raycynix_auth_dev`
-* username: `postgres`
-* password: `postgres`
+The `workers` and `deployments` solution areas are reserved for the future worker host and self-hosted deployment
+assets.
 
-To stop containers:
+## Prerequisites
 
-```bash
-docker compose down
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- PostgreSQL
+- An SMTP server for account emails
+
+## Build
+
+Clone the repository and build the solution:
+
+```shell
+git clone https://github.com/raycynix-official/Identity.git
+cd Identity
+dotnet restore
+dotnet build Raycynix.Identity.sln
 ```
-
-To remove the database volume too:
-
-```bash
-docker compose down -v
-```
-
-## API
-
-Base route: `/api/v1/auth`
-
-| Method | Route                         | Description                                                                                   |
-|--------|-------------------------------|-----------------------------------------------------------------------------------------------|
-| `POST` | `/registration`               | Registers a user and sends an email confirmation link.                                        |
-| `POST` | `/login`                      | Authenticates by username or email, returns an access token, and sets a refresh-token cookie. |
-| `POST` | `/email-confirmation/send`    | Sends a new email confirmation link.                                                          |
-| `GET`  | `/email-confirmation/confirm` | Confirms a user's email address from an email confirmation link.                              |
-| `POST` | `/email-confirmation/confirm` | Confirms a user's email address.                                                              |
-| `POST` | `/password-reset/send`        | Sends a password reset link by email.                                                         |
-| `POST` | `/password-reset/reset`       | Resets a user's password.                                                                     |
-| `POST` | `/logout`                     | Revokes the active refresh token and deletes the refresh-token cookie.                        |
-| `POST` | `/refresh`                    | Rotates the active refresh token and returns a new access token.                              |
-
-Swagger UI is available at `/swagger` in the Development environment. The root path `/` redirects to `/swagger` in Development.
 
 ## Configuration
 
-The service uses Raycynix typed configuration and validates required configuration sections at startup. Sensitive values such as the JWT secret, database password, and SMTP credentials should be supplied through the configured secret provider or environment-specific configuration.
+Configuration is read from the standard ASP.NET Core configuration providers and Raycynix configuration extensions. Do
+not commit production secrets.
 
-Required security settings:
+At minimum, provide PostgreSQL connection settings, JWT settings, and SMTP credentials through environment variables,
+user secrets, or an environment-specific configuration provider.
 
-```json
-{
-   "SecurityConfiguration": {
-      "Jwt": {
-         "Authority": "https://auth.raycynix.com",
-         "Issuer": "raycynix-auth",
-         "Audience": "raycynix-services",
-         "AccessTokenLifetime": "00:15:00",
-         "RefreshTokenLifetime": "14.00:00:00",
-         "ClockSkew": "00:01:00",
-         "RequireHttpsMetadata": true,
-         "Secret": "<jwt-signing-secret>"
-      },
-      "RefreshTokenHashSecret": "<optional-refresh-token-hmac-secret>"
-   }
-}
-```
-
-Required database settings:
+### Database
 
 ```json
 {
-   "DatabaseConfiguration": {
-      "ConnectionConfiguration": {
-         "Host": "localhost",
-         "Port": 5432,
-         "Name": "raycynix_auth_dev",
-         "Username": "postgres",
-         "Password": "postgres"
-      },
-      "UseMigrations": false,
-      "EnsureCreated": true
-   }
+  "DatabaseConfiguration": {
+    "ConnectionConfiguration": {
+      "Host": "localhost",
+      "Port": 5432,
+      "Name": "raycynix_identity",
+      "Username": "postgres",
+      "Password": "<database-password>"
+    },
+    "UseMigrations": false,
+    "EnsureCreated": true
+  }
 }
 ```
 
-## Authentication Flow
+The current development configuration uses `EnsureCreated`. A migration-based production database lifecycle is planned
+before the self-hosted distribution is considered production-ready.
 
-* Access tokens are JWT bearer tokens signed with the configured JWT secret.
-* Registration creates a user, generates an ASP.NET Core Identity email confirmation token, and sends a confirmation link by email.
-* Login requires a confirmed email address when `IdentityOptions:SignIn:RequireConfirmedEmail` is enabled.
-* Refresh tokens are generated from cryptographically random bytes.
-* Refresh tokens are stored in the database as HMAC-SHA-256 hashes. Legacy SHA-256 hashes are accepted during token lookup for migration compatibility.
-* Refresh-token cookies are `HttpOnly`, `Secure`, and `SameSite=Strict`.
-* Login reads the existing refresh-token cookie, revokes the active token for the authenticated user, and links it to the newly issued refresh token.
-* Refreshing a token revokes the previous refresh token and links it to the replacement token hash.
-* Refresh-token revocations store a reason and, when applicable, the token hash that replaced or caused the revocation.
-* Reuse of an already revoked refresh token revokes active refresh tokens for the affected user.
-* Password reset links are sent by email and use ASP.NET Core Identity password reset tokens.
-* Successful password reset revokes the user's active refresh tokens.
+### JWT and refresh-token hashing
 
-## Email Configuration
+```json
+{
+  "SecurityConfiguration": {
+    "Jwt": {
+      "Authority": "https://id.example.com",
+      "Issuer": "https://id.example.com",
+      "Audience": "example-api",
+      "AccessTokenLifetime": "00:15:00",
+      "RefreshTokenLifetime": "14.00:00:00",
+      "ClockSkew": "00:01:00",
+      "RequireHttpsMetadata": true,
+      "Secret": "<at-least-32-byte-jwt-secret>"
+    },
+    "RefreshTokenHashSecret": "<optional-dedicated-hmac-secret>"
+  }
+}
+```
 
-Account emails are sent through `Raycynix.Extensions.Email.Smtp`.
+`SecurityConfiguration:RefreshTokenHashSecret` is optional. When omitted, the JWT secret is used for refresh-token HMAC
+hashing. A dedicated secret is recommended.
+
+### SMTP
 
 ```json
 {
   "EmailConfiguration": {
-    "DefaultFromAddress": "no-reply@raycynix.com",
-    "DefaultFromDisplayName": "Raycynix No-Reply",
+    "DefaultFromAddress": "no-reply@example.com",
+    "DefaultFromDisplayName": "Example Identity",
     "SmtpConfiguration": {
       "Host": "smtp.example.com",
       "Port": 465,
       "SecureSocketOptions": "SslOnConnect",
       "Username": "smtp-user",
-      "Password": "smtp-password",
+      "Password": "<smtp-password>",
       "TimeoutMilliseconds": 100000
     }
   }
 }
 ```
 
-Email confirmation links are built from `SecurityConfiguration:Jwt:Authority` and the email confirmation endpoint route.
+### Identity and security policies
 
-```json
-{
-   "EmailConfirmationConfiguration": {
-     "TemplatePath": "Templates/Emails/EmailConfirmation.html"
-   }
-}
+The Host validates these configuration sections during startup:
+
+- `EmailConfirmationOptions`
+- `ResetPasswordOptions`
+- `RateLimitOptions`
+- `RefreshTokenRevocationOptions`
+- `BackgroundServiceOptions`
+- `IdentityOptions`
+
+Default values are defined in [appsettings.json](src/Raycynix.Identity.Host/appsettings.json).
+
+Environment variables use standard ASP.NET Core double-underscore notation:
+
+```text
+DatabaseConfiguration__ConnectionConfiguration__Host
+DatabaseConfiguration__ConnectionConfiguration__Password
+SecurityConfiguration__Jwt__Authority
+SecurityConfiguration__Jwt__Issuer
+SecurityConfiguration__Jwt__Audience
+SecurityConfiguration__Jwt__Secret
+SecurityConfiguration__RefreshTokenHashSecret
+EmailConfiguration__SmtpConfiguration__Username
+EmailConfiguration__SmtpConfiguration__Password
 ```
 
-The email body is rendered from the configured `Templates/Emails/EmailConfirmation.html` runtime path. The source template is located at `src/Templates/Emails/EmailConfirmation.html`, supports `{{UserName}}`, `{{Email}}`, and `{{ConfirmationLink}}` placeholders, and is copied to the application output during build.
+## Run the Host
 
-## Identity Options
+After configuring PostgreSQL, JWT, and SMTP settings:
 
-Identity behavior is controlled through the standard ASP.NET Core Identity options.
-
-```json
-{
-   "IdentityOptions": {
-      "SignIn": {
-         "RequireConfirmedEmail": false,
-         "RequireConfirmedPhoneNumber": false
-      }
-   }
-}
+```shell
+dotnet run --project src/Raycynix.Identity.Host/Raycynix.Identity.Host.csproj
 ```
 
-When `SignIn:RequireConfirmedEmail` is `true`, users must confirm their email address before login. When it is `false`, email confirmation tokens can still be generated and confirmed, but login does not require confirmation.
+In the Development environment, the root path redirects to Swagger UI at `/swagger`.
 
-## Rate Limiting
+The Aspire AppHost currently provides the orchestration project foundation but does not yet register the Identity Host
+or PostgreSQL as resources.
 
-Sensitive authentication endpoints are protected by a fixed-window rate limit.
+## Account API
 
-```json
-{
-   "RateLimitConfiguration": {
-      "PermitLimit": 10,
-      "Window": "00:01:00",
-      "QueueLimit": 0
-   }
-}
+Base route: `/api/v1/auth`
+
+| Method | Route                         | Description                                                                     |
+|--------|-------------------------------|---------------------------------------------------------------------------------|
+| `POST` | `/registration`               | Registers a user and sends an email confirmation link.                          |
+| `POST` | `/login`                      | Authenticates a user, returns an access token, and sets a refresh-token cookie. |
+| `POST` | `/email-confirmation/send`    | Sends a new email confirmation link.                                            |
+| `GET`  | `/email-confirmation/confirm` | Confirms an email address from an email link.                                   |
+| `POST` | `/email-confirmation/confirm` | Confirms an email address from a request body.                                  |
+| `POST` | `/password-reset/send`        | Sends a password-reset link.                                                    |
+| `POST` | `/password-reset/reset`       | Resets a password using an Identity token.                                      |
+| `POST` | `/logout`                     | Revokes the current refresh token and removes its cookie.                       |
+| `POST` | `/refresh`                    | Rotates the refresh token and returns a new access token.                       |
+
+These routes are the current Raycynix account API. They are not OAuth 2.0 or OpenID Connect protocol endpoints.
+
+## Authentication and session behavior
+
+- Registration creates an ASP.NET Core Identity user and sends an email-confirmation link.
+- Login can require a confirmed email through `IdentityOptions:SignIn:RequireConfirmedEmail`.
+- Access tokens are short-lived JWT bearer tokens.
+- Refresh tokens are issued through a secure HTTP-only cookie scoped to `/api/v1/auth`.
+- Only refresh-token hashes are persisted.
+- Each successful refresh rotates and revokes the previous token.
+- Reuse of a revoked refresh token can revoke all active refresh tokens belonging to the affected user.
+- A successful password reset can revoke all active refresh tokens.
+- Expired refresh tokens are removed by `RefreshTokensCleanupBackground`.
+
+## Extension abstractions
+
+`Raycynix.Identity.Abstractions` is prepared as a standalone NuGet package for self-hosted extensions. After publication to a configured NuGet feed, consumers can install it with:
+
+```shell
+dotnet add package Raycynix.Identity.Abstractions
 ```
 
-## Refresh-Token Revocation
+The initial preview API contains `IClaimsContributor` and `ClaimsContributionContext`. It has no dependency on
+`Raycynix.Identity.Host` or other Raycynix packages.
 
-Refresh-token revocation behavior is controlled through typed configuration.
+Package-specific documentation:
 
-```json
-{
-   "RefreshTokenRevocationConfiguration": {
-      "RevokeExistingTokenOnLogin": true,
-      "DetectReuseOnLogin": true,
-      "DetectReuseOnRefresh": true,
-      "RevokeActiveTokensOnReuse": true,
-      "RevokeActiveTokensOnPasswordReset": true,
-      "TrackLastUsedOnRefresh": true
-   }
-}
+- [Abstractions README](src/Raycynix.Identity.Abstractions/README.md)
+- [Abstractions changelog](src/Raycynix.Identity.Abstractions/CHANGELOG.md)
+
+The package currently inherits version `0.4.0` from `Directory.Build.props`. Host integration for claims contributors
+will be added as the OAuth/OIDC principal-building pipeline is implemented.
+
+Build the package locally with:
+
+```shell
+dotnet pack src/Raycynix.Identity.Abstractions/Raycynix.Identity.Abstractions.csproj -c Release
 ```
-
-## Background Services
-
-Expired refresh tokens are removed by `RefreshTokensCleanupBackground`. The service is controlled through `BackgroundServiceConfiguration` and validated through Raycynix typed configuration.
-
-```json
-{
-   "BackgroundServiceConfiguration": {
-      "RefreshTokensCleanupEnabled": true,
-      "RefreshTokensCleanupInterval": "24:00:00"
-   }
-}
-```
-
-When enabled, cleanup runs once on application start and then repeats after the configured interval.
-
-## Project Structure
-
-The solution follows Clean Architecture to ensure separation of concerns and testability:
-
-* **Web**: The ASP.NET Core Web API entry point
-* **Application**: Business logic, interfaces, DTOs
-* **Domain**: Entities and domain rules
-* **Infrastructure**: Database and external integrations
-
-The application project and source folders are located under `src/`.
-
-## Documentation
-
-Public types and methods are documented with XML comments. Release builds generate the XML documentation file.
 
 ## Tests
 
-Run the test suite with:
+Run the current test project with:
 
-```bash
-dotnet test Raycynix.Services.AuthService.sln
+```shell
+dotnet test tests/Raycynix.Identity.Host.Tests/Raycynix.Identity.Host.Tests.csproj
 ```
 
-## Tech Stack
-* **Framework:** ASP.NET Core (`net10.0`)
-* **Identity:** ASP.NET Core Identity
-* **Database:** PostgreSQL
-* **Configuration:** Raycynix typed configuration
-* **API Documentation:** Swagger / OpenAPI
-* **Architecture:** Clean Architecture / Onion Architecture
+Or test the complete solution:
+
+```shell
+dotnet test Raycynix.Identity.sln
+```
+
+## Technology
+
+- .NET 10 and ASP.NET Core
+- ASP.NET Core Identity
+- Entity Framework Core
+- PostgreSQL
+- .NET Aspire
+- NUnit
+- Swagger / OpenAPI
+- Raycynix Extensions
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md).
+See [CHANGELOG.md](CHANGELOG.md) for product changes. The Abstractions package maintains its own release history.
 
 ## License
-This project is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
+
+Raycynix Identity is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).

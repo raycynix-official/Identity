@@ -1,22 +1,42 @@
 # Changelog
 
-All notable changes to this project are documented in this file.
+All notable changes to Raycynix Identity are documented in this file.
+
+The standalone `Raycynix.Identity.Abstractions` package also maintains a package-specific changelog in `src/Raycynix.Identity.Abstractions/CHANGELOG.md`.
 
 ## [0.4.0]
 
 ### Added
-* Added NUnit test coverage for controller endpoint attributes, auth route contracts, request validation, refresh-token cookies, refresh-token hashing, secret resolution, refresh-token entity behavior, and security configuration validation.
+
+- Added the `Raycynix.Identity.AppHost` Aspire project as the orchestration foundation.
+- Added the standalone `Raycynix.Identity.Abstractions` NuGet package.
+- Added centralized solution metadata and version configuration through `Directory.Build.props`.
+- Added dedicated solution areas for orchestration, future workers, and future deployment assets.
+- Added `IClaimsContributor` and `ClaimsContributionContext` as the initial public extension contracts.
+- Added package-specific README, changelog, release notes, tags, icon, license, and symbol package configuration for Abstractions.
+- Added NUnit test coverage for controller endpoint attributes, auth route contracts, request validation, refresh-token cookies, refresh-token hashing, secret resolution, refresh-token entity behavior, and security configuration validation.
+
+### Changed
+
+- Renamed the product and solution from Raycynix Services AuthService to Raycynix Identity.
+- Renamed the main application project to `Raycynix.Identity.Host`.
+- Renamed the test project to `Raycynix.Identity.Host.Tests`.
+- Updated namespaces and project references to the `Raycynix.Identity` naming scheme.
+- Added centralized solution metadata and version configuration through `Directory.Build.props`.
+- Added dedicated solution areas for orchestration, future workers, and future deployment assets.
 
 ### Fixed
-* Fixed request DTO validation attributes so DataAnnotations are applied to generated record properties.
+
+- Fixed request DTO validation attributes so DataAnnotations are applied to generated record properties.
 
 ### Security
-* Added typed configuration for refresh-token revocation policy behavior.
-* Added HMAC-SHA-256 hashing for newly issued refresh tokens with legacy SHA-256 lookup compatibility.
-* Added refresh-token revocation reasons, last-used timestamps, and revocation source token hashes.
-* Added refresh-token reuse detection during refresh and login token rotation.
-* Added active-session revocation when reuse of an already revoked refresh token is detected.
-* Added refresh-token indexes for active session and revocation reason queries.
+
+- Added typed configuration for refresh-token revocation policy behavior.
+- Added HMAC-SHA-256 hashing for newly issued refresh tokens with legacy SHA-256 lookup compatibility.
+- Added refresh-token revocation reasons, last-used timestamps, and revocation source token hashes.
+- Added refresh-token reuse detection during refresh and login token rotation.
+- Added active-session revocation when reuse of an already revoked refresh token is detected.
+- Added refresh-token indexes for active session and revocation reason queries.
 
 ## [0.3.2]
 

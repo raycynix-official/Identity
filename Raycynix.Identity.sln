@@ -2,11 +2,11 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5C6497A9-0691-4890-8534-55EBF88AF011}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{5C15819F-F883-48C6-84CF-0B88235E33F9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raycynix.Identity.Abstractions", "src\Raycynix.Identity.Abstractions\Raycynix.Identity.Abstractions.csproj", "{57A6C98B-9D33-4E06-BEA4-4661716D885F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raycynix.Identity.Host", "src\Raycynix.Identity.Host\Raycynix.Identity.Host.csproj", "{F9F53BA4-50E1-479C-9996-39590C228BCC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raycynix.Identity.AppHost", "src\Raycynix.Identity.AppHost\Raycynix.Identity.AppHost.csproj", "{2C796F10-36EF-446F-B78A-DD3CA5B38182}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{5C15819F-F883-48C6-84CF-0B88235E33F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raycynix.Identity.Host.Tests", "tests\Raycynix.Identity.Host.Tests\Raycynix.Identity.Host.Tests.csproj", "{A00DA919-13E2-4A1D-9A15-18A72BB64073}"
 EndProject
@@ -14,9 +14,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workers", "workers", "{4F79
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "orchestration", "orchestration", "{7AD263C1-A34F-49DD-B7BD-E9891B909634}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deployments", "deployments", "{03EAD8FF-1688-488C-8FF5-772509E07D17}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raycynix.Identity.AppHost", "orchestration\Raycynix.Identity.AppHost\Raycynix.Identity.AppHost.csproj", "{2C796F10-36EF-446F-B78A-DD3CA5B38182}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raycynix.Identity.Abstractions", "src\Raycynix.Identity.Abstractions\Raycynix.Identity.Abstractions.csproj", "{57A6C98B-9D33-4E06-BEA4-4661716D885F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deployments", "deployments", "{03EAD8FF-1688-488C-8FF5-772509E07D17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

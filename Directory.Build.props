@@ -1,0 +1,44 @@
+<Project>
+    <PropertyGroup>
+        <Version>0.4.0</Version>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Company>Raycynix</Company>
+        <Authors>Raycynix</Authors>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+        <PackageIcon>logo.png</PackageIcon>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+        <Product>$(MSBuildProjectName)</Product>
+        <PackageId>$(MSBuildProjectName)</PackageId>
+
+        <AssemblyName>$(MSBuildProjectName)</AssemblyName>
+        <RootNamespace>$(MSBuildProjectName)</RootNamespace>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Copyright>Copyright © $([System.DateTime]::Now.Year) Raycynix</Copyright>
+        <RepositoryUrl>https://github.com/raycynix-official/Identity</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/raycynix-official/Identity</PackageProjectUrl>
+        <RepositoryType>git</RepositoryType>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+        <SelfContained>true</SelfContained>
+        <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <WarningsNotAsErrors>CS1591</WarningsNotAsErrors>
+    </PropertyGroup>
+</Project>

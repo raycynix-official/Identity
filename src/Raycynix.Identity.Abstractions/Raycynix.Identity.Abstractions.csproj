@@ -1,19 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <Version>0.1.0</Version>
-
         <IsPackable>true</IsPackable>
+
         <Title>Raycynix Identity Abstractions</Title>
         <Description>Public extension contracts for customizing Raycynix Identity without depending on its internal implementation assemblies.</Description>
         <PackageTags>raycynix;identity;authentication;authorization;oauth2;openid-connect;oidc;abstractions;extensions</PackageTags>
         <PackageReleaseNotes>Initial preview release with claims contribution contracts for Raycynix Identity extensions.</PackageReleaseNotes>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
+
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
-    
+
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
         <LangVersion>latest</LangVersion>
@@ -25,6 +24,7 @@
     <PropertyGroup>
         <PackageIcon>logo.png</PackageIcon>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -38,18 +38,6 @@
 
         <AssemblyName>$(MSBuildProjectName)</AssemblyName>
         <RootNamespace>$(MSBuildProjectName)</RootNamespace>
-    </PropertyGroup>
-
-    <PropertyGroup>
-        <Copyright>Copyright © $([System.DateTime]::Now.Year) Raycynix</Copyright>
-        <RepositoryUrl>https://github.com/raycynix-official/Identity</RepositoryUrl>
-        <PackageProjectUrl>https://github.com/raycynix-official/Identity</PackageProjectUrl>
-        <RepositoryType>git</RepositoryType>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)'=='Release'">
-        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

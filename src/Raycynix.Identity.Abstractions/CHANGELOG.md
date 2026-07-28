@@ -2,7 +2,7 @@
 
 All notable changes to `Raycynix.Identity.Abstractions` are documented in this file.
 
-## [0.1.0] - 2026-07-28
+## [0.4.0] - 2026-07-28
 
 ### Added
 
