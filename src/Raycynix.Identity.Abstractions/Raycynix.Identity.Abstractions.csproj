@@ -11,6 +11,7 @@
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <SelfContained>false</SelfContained>
     </PropertyGroup>
 
     <PropertyGroup>
