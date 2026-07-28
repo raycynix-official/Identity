@@ -1,0 +1,56 @@
+// Copyright 2026 Raycynix
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+//     http://www.apache.org/licenses/LICENSE-2.0
+
+using Microsoft.EntityFrameworkCore;
+using Raycynix.Extensions.Database.Abstractions.Attributes;
+using Raycynix.Extensions.Database.Implementations;
+using Raycynix.Identity.Host.Domain.Entities.Identity;
+
+namespace Raycynix.Identity.Host.Infrastructure.Configurators.Identity;
+
+/// <summary>
+/// Configures the user entity mapping.
+/// </summary>
+[DatabaseTable("users")]
+public sealed class UserConfigurator : GenericConfigurator<User>
+{
+    /// <inheritdoc />
+    public override Type[] DependsOn => [];
+
+    /// <summary>
+    /// Configures the user table, key, indexes, required fields, and length limits.
+    /// </summary>
+    /// <param name="modelBuilder">The EF Core model builder.</param>
+    public override void Configure(ModelBuilder modelBuilder)
+    {
+        base.Configure(modelBuilder);
+        var entity = modelBuilder.Entity<User>();
+        
+        entity.HasKey(user => user.Id);
+
+        entity.HasIndex(user => user.UserName)
+            .IsUnique();
+        entity.Property(user => user.UserName)
+            .HasMaxLength(64)
+            .IsRequired();
+
+        entity.HasIndex(user => user.Email)
+            .IsUnique();
+        entity.Property(user => user.Email)
+            .HasMaxLength(256)
+            .IsRequired();
+
+        entity.Property(user => user.PasswordHash)
+            .HasMaxLength(512)
+            .IsRequired();
+
+        entity.Property(user => user.CreatedAt)
+            .IsRequired();
+        
+        entity.Property(user => user.LastLoginAt).IsRequired(false);
+    }
+}

@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <IsPackable>true</IsPackable>
+
+        <Title>Raycynix Identity Abstractions</Title>
+        <Description>Public extension contracts for customizing Raycynix Identity without depending on its internal implementation assemblies.</Description>
+        <PackageTags>raycynix;identity;authentication;authorization;oauth2;openid-connect;oidc;abstractions;extensions</PackageTags>
+        <PackageReleaseNotes>Initial preview release with claims contribution contracts for Raycynix Identity extensions.</PackageReleaseNotes>
+
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <SelfContained>false</SelfContained>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <AnalysisLevel>latest</AnalysisLevel>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageIcon>logo.png</PackageIcon>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Company>Raycynix</Company>
+        <Authors>Raycynix</Authors>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Product>$(MSBuildProjectName)</Product>
+        <PackageId>$(MSBuildProjectName)</PackageId>
+
+        <AssemblyName>$(MSBuildProjectName)</AssemblyName>
+        <RootNamespace>$(MSBuildProjectName)</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Update="README.md" Pack="true" PackagePath=""/>
+        <None Update="CHANGELOG.md" Pack="true" PackagePath=""/>
+        <None Include="$(MSBuildThisFileDirectory)..\..\logo.png" Pack="true" Visible="false" PackagePath=""/>
+        <None Include="$(MSBuildThisFileDirectory)..\..\LICENSE" Pack="true" Visible="false" PackagePath=""/>
+    </ItemGroup>
+
+</Project>
