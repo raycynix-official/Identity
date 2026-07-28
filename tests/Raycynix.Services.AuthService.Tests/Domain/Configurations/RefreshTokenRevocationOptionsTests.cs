@@ -2,12 +2,12 @@ using Raycynix.Services.AuthService.Domain.Configurations;
 
 namespace Raycynix.Services.AuthService.Tests.Domain.Configurations;
 
-public class RefreshTokenRevocationConfigurationTests
+public class RefreshTokenRevocationOptionsTests
 {
     [Test]
     public void Constructor_UsesSecureDefaults()
     {
-        var configuration = new RefreshTokenRevocationConfiguration();
+        var configuration = new RefreshTokenRevocationOptions();
 
         Assert.Multiple(() =>
         {
@@ -23,7 +23,7 @@ public class RefreshTokenRevocationConfigurationTests
     [Test]
     public void Validate_DoesNotThrow_ForDefaultConfiguration()
     {
-        var configuration = new RefreshTokenRevocationConfiguration();
+        var configuration = new RefreshTokenRevocationOptions();
 
         Assert.DoesNotThrow(configuration.Validate);
     }

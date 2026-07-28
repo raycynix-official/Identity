@@ -2,12 +2,12 @@ using Raycynix.Services.AuthService.Domain.Configurations.BackgroundServices;
 
 namespace Raycynix.Services.AuthService.Tests.Domain.Configurations;
 
-public class BackgroundServiceConfigurationTests
+public class BackgroundServiceOptionsTests
 {
     [Test]
     public void Validate_DefaultConfiguration_DoesNotThrow()
     {
-        var configuration = new BackgroundServiceConfiguration();
+        var configuration = new BackgroundServiceOptions();
 
         Assert.DoesNotThrow(configuration.Validate);
     }
@@ -15,7 +15,7 @@ public class BackgroundServiceConfigurationTests
     [Test]
     public void Validate_WhenCleanupDisabledAllowsZeroInterval_DoesNotThrow()
     {
-        var configuration = new BackgroundServiceConfiguration
+        var configuration = new BackgroundServiceOptions
         {
             RefreshTokensCleanupEnabled = false,
             RefreshTokensCleanupInterval = TimeSpan.Zero
@@ -28,7 +28,7 @@ public class BackgroundServiceConfigurationTests
     [TestCase(-1)]
     public void Validate_WhenCleanupEnabledAndIntervalIsNotPositive_Throws(int seconds)
     {
-        var configuration = new BackgroundServiceConfiguration
+        var configuration = new BackgroundServiceOptions
         {
             RefreshTokensCleanupEnabled = true,
             RefreshTokensCleanupInterval = TimeSpan.FromSeconds(seconds)

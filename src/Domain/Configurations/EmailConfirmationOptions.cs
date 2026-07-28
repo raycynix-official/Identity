@@ -10,7 +10,7 @@ namespace Raycynix.Services.AuthService.Domain.Configurations;
 /// <summary>
 /// Contains email confirmation delivery settings.
 /// </summary>
-public class EmailConfirmationConfiguration
+public class EmailConfirmationOptions
 {
     /// <summary>
     /// Gets or sets the relative or absolute path to the email confirmation HTML template.
