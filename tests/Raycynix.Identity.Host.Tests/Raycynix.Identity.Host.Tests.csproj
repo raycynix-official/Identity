@@ -7,6 +7,8 @@
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
         <SelfContained>false</SelfContained>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
