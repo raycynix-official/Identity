@@ -8,4 +8,7 @@
         <UserSecretsId>bd08c32a-abff-48c2-9674-6f8fe88c6ed8</UserSecretsId>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
+    </PropertyGroup>
 </Project>
