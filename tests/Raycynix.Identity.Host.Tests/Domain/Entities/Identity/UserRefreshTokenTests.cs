@@ -1,6 +1,8 @@
 using Raycynix.Extensions.Security.Configurations;
+using Microsoft.EntityFrameworkCore;
 using Raycynix.Identity.Host.Application.Extensions;
 using Raycynix.Identity.Host.Domain.Entities.Identity;
+using Raycynix.Identity.Host.Infrastructure.Configurators.Identity;
 
 namespace Raycynix.Identity.Host.Tests.Domain.Entities.Identity;
 
@@ -54,5 +56,18 @@ public class UserRefreshTokenTests
         };
 
         Assert.That(refreshToken.IsActive, Is.False);
+    }
+
+    [Test]
+    public void Configuration_UsesRevokedAtAsConcurrencyToken()
+    {
+        var modelBuilder = new ModelBuilder();
+        new UserRefreshTokenConfigurator().Configure(modelBuilder);
+
+        var property = modelBuilder.Model
+            .FindEntityType(typeof(UserRefreshToken))!
+            .FindProperty(nameof(UserRefreshToken.RevokedAt));
+
+        Assert.That(property?.IsConcurrencyToken, Is.True);
     }
 }
