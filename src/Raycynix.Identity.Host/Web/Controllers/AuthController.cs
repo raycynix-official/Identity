@@ -8,7 +8,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
-using Raycynix.Extensions.Security.Configurations;
+using Raycynix.Extensions.Security.Options;
 using Raycynix.Identity.Host.Application.Interfaces;
 using Raycynix.Identity.Host.Application.Models;
 using Raycynix.Identity.Host.Web.Extensions;
@@ -24,7 +24,7 @@ namespace Raycynix.Identity.Host.Web.Controllers;
 [Route(AuthRoutes.Base)]
 public class AuthController(
     IAuthService authService,
-    IOptions<JwtConfiguration> jwtSettings
+    IOptions<JwtOptions> jwtSettings
 ) : ControllerBase
 {
     private const string AuthSensitiveRateLimitPolicy = "auth-sensitive";
