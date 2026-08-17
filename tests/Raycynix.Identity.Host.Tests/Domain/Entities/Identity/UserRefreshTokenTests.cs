@@ -1,4 +1,4 @@
-using Raycynix.Extensions.Security.Configurations;
+using Raycynix.Extensions.Security.Options;
 using Raycynix.Identity.Host.Application.Extensions;
 using Raycynix.Identity.Host.Domain.Entities.Identity;
 
@@ -13,7 +13,7 @@ public class UserRefreshTokenTests
         {
             Id = Guid.NewGuid()
         };
-        var jwtConfiguration = new JwtConfiguration
+        var jwtConfiguration = new JwtOptions()
         {
             RefreshTokenLifetime = TimeSpan.FromDays(14)
         };
