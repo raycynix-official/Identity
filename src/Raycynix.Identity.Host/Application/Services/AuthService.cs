@@ -164,15 +164,15 @@ public class AuthService(
         var user = await userManager.FindByEmailAsync(request.Email.Trim());
         if (user is null)
         {
-            logger.LogWarning("Email confirmation token generation failed: user was not found");
-            throw new UnauthorizedException("User not found");
+            logger.LogInformation("Email confirmation message skipped: user was not found");
+            return;
         }
 
         if (await userManager.IsEmailConfirmedAsync(user))
         {
-            logger.LogWarning("Email confirmation token generation failed: email already confirmed for user:{userId}",
+            logger.LogInformation("Email confirmation message skipped: email already confirmed for user:{userId}",
                 user.Id);
-            throw new UnauthorizedException("Email already confirmed");
+            return;
         }
 
         var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -348,7 +348,18 @@ public class AuthService(
             UserRefreshTokenRevocationReason.RefreshRotation,
             replacedByTokenHash: newUserRefreshToken.TokenHash);
         databaseContext.Update(userRefreshToken);
-        await databaseContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await databaseContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            logger.LogWarning(
+                "Refresh token rotation lost a concurrency race for token:{refreshTokenId} and user:{userId}",
+                userRefreshToken.Id,
+                userRefreshToken.UserId);
+            throw new UnauthorizedException("Refresh token has already been used");
+        }
 
         return new AuthResult(accessToken.TokenString(), accessToken.ValidTo, newRefreshToken);
     }
@@ -561,7 +572,7 @@ public class AuthService(
     {
         var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetPasswordToken));
         return QueryHelpers.AddQueryString(
-            CreateEndpointUrl(AuthRoutes.PasswordResetPath),
+            CreatePublicUrl(resetPasswordConfiguration.Value.PageUrl),
             new Dictionary<string, string?>
             {
                 [nameof(ResetPasswordRequest.Email).ToLowerInvariant()] = email,
@@ -569,7 +580,22 @@ public class AuthService(
             });
     }
 
+    private string CreatePublicUrl(string configuredUrl)
+    {
+        if (Uri.TryCreate(configuredUrl, UriKind.Absolute, out var absoluteUri))
+        {
+            return absoluteUri.ToString();
+        }
+
+        return $"{GetRequiredAuthority()}/{configuredUrl.TrimStart('/')}";
+    }
+
     private string CreateEndpointUrl(string route)
+    {
+        return $"{GetRequiredAuthority()}/{route}";
+    }
+
+    private string GetRequiredAuthority()
     {
         var authority = jwtSettings.Value.Authority;
         if (string.IsNullOrWhiteSpace(authority))
@@ -577,7 +603,7 @@ public class AuthService(
             throw new InvalidOperationException("JWT authority is required to build account email links");
         }
 
-        return $"{authority.TrimEnd('/')}/{route}";
+        return authority.TrimEnd('/');
     }
 
     private static string DecodeIdentityToken(string token)
