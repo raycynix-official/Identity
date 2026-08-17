@@ -139,6 +139,11 @@ before the self-hosted distribution is considered production-ready.
 `SecurityConfiguration:RefreshTokenHashSecret` is optional. When omitted, the JWT secret is used for refresh-token HMAC
 hashing. A dedicated secret is recommended.
 
+Password-reset emails link to `ResetPasswordOptions:PageUrl`. Root-relative values are resolved against
+`SecurityConfiguration:Jwt:Authority`; an absolute HTTP or HTTPS URL can be used when the account UI is hosted
+separately. The target page must collect the new password and submit the email, token, and password to
+`POST /api/v1/auth/password-reset/reset`.
+
 ### SMTP
 
 ```json
