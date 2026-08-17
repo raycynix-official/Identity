@@ -32,6 +32,8 @@
         <PackageReference Include="Raycynix.Extensions.Observability.AspNetCore" Version="3.0.0" />
         <PackageReference Include="Raycynix.Extensions.Secrets" Version="3.0.0" />
         <PackageReference Include="Raycynix.Extensions.Security.AspNetCore" Version="3.0.0" />
+        <PackageReference Include="OpenIddict.Server.AspNetCore" Version="7.6.0" />
+        <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.6.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3"/>
     </ItemGroup>
 
