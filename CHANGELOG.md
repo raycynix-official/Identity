@@ -4,6 +4,15 @@ All notable changes to Raycynix Identity are documented in this file.
 
 The standalone `Raycynix.Identity.Abstractions` package also maintains a package-specific changelog in `src/Raycynix.Identity.Abstractions/CHANGELOG.md`.
 
+## [0.5.0]
+
+### Added
+
+- Added a feature-flagged OpenIddict OAuth 2.0 and OpenID Connect server foundation.
+- Added Entity Framework Core persistence mappings for OpenIddict applications, authorizations, scopes, and tokens.
+- Added Authorization Code and Refresh Token flow configuration with mandatory PKCE.
+- Added development and production certificate configuration with startup validation.
+
 ## [0.4.0]
 
 ### Added

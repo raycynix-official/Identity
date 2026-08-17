@@ -1,7 +1,7 @@
 # Raycynix Identity
 
 ![.NET Version](https://img.shields.io/badge/.NET-10.0-512BD4.svg)
-![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)
 ![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)
 
 Raycynix Identity is the identity and access platform for Raycynix products. The project is being designed both as a
@@ -9,8 +9,8 @@ shared hosted identity service and as a self-hosted solution that organizations 
 applications.
 
 The current release provides account authentication, email confirmation, password recovery, JWT access tokens, secure
-refresh-token rotation, session revocation, and PostgreSQL persistence. OAuth 2.0 and OpenID Connect provider
-capabilities are planned but are not implemented yet.
+refresh-token rotation, session revocation, and PostgreSQL persistence. The feature-flagged OpenIddict server foundation
+is present, but public OAuth 2.0 and OpenID Connect authorization flows are not operational yet.
 
 ## Current capabilities
 
@@ -27,6 +27,7 @@ capabilities are planned but are not implemented yet.
 - Configurable cleanup of expired refresh tokens.
 - SMTP email delivery with HTML templates.
 - PostgreSQL persistence.
+- Feature-flagged OpenIddict server and Entity Framework Core persistence foundation.
 - Swagger UI in the Development environment.
 
 ## Project status
@@ -36,8 +37,8 @@ standards-compliant OAuth 2.0 authorization server or OpenID Connect provider.
 
 The planned direction includes:
 
-- OAuth 2.0 and OpenID Connect through OpenIddict.
-- Authorization Code flow with PKCE.
+- Authorization and user-info handlers for the OpenIddict server foundation.
+- Operational Authorization Code flow with PKCE.
 - Standard discovery, JWKS, token, authorization, user-info, revocation, and logout endpoints.
 - Application, redirect URI, scope, consent, and authorization management.
 - Hosted multi-tenancy and a single-tenant self-hosted profile.
@@ -144,6 +145,49 @@ Password-reset emails link to `ResetPasswordOptions:PageUrl`. Root-relative valu
 separately. The target page must collect the new password and submit the email, token, and password to
 `POST /api/v1/auth/password-reset/reset`.
 
+### OAuth 2.0 and OpenID Connect foundation
+
+OpenIddict is disabled by default and can be enabled through `OpenIddictOptions`. The current foundation registers the
+authorization, token, logout, revocation, and user-info endpoint URIs, persists OpenIddict applications,
+authorizations, scopes, and tokens in PostgreSQL, enables Authorization Code and Refresh Token flows, and requires PKCE.
+
+Development uses generated development certificates:
+
+```json
+{
+  "OpenIddictOptions": {
+    "Enabled": true,
+    "Issuer": "https://localhost:7000/",
+    "UseDevelopmentCertificates": true
+  }
+}
+```
+
+Development certificates are rejected outside the Development environment. Production requires separate PKCS#12
+certificates containing private keys:
+
+```json
+{
+  "OpenIddictOptions": {
+    "Enabled": true,
+    "Issuer": "https://id.example.com/",
+    "UseDevelopmentCertificates": false,
+    "SigningCertificatePath": "certificates/signing.pfx",
+    "SigningCertificatePassword": "<from-secret-provider>",
+    "EncryptionCertificatePath": "certificates/encryption.pfx",
+    "EncryptionCertificatePassword": "<from-secret-provider>"
+  }
+}
+```
+
+Certificate passwords should be supplied by environment variables or another secret-backed configuration provider, not
+committed to configuration files. The environment variable names are
+`OpenIddictOptions__SigningCertificatePassword` and `OpenIddictOptions__EncryptionCertificatePassword`.
+
+This foundation PR does not yet implement the login/consent authorization handler, user-info response handler, client
+provisioning UI, or production database migrations. Enabling the feature advertises the protocol endpoints, but complete
+authorization requests will be supported by the subsequent protocol PRs.
+
 ### SMTP
 
 ```json
@@ -173,6 +217,7 @@ The Host validates these configuration sections during startup:
 - `RefreshTokenRevocationOptions`
 - `BackgroundServiceOptions`
 - `IdentityOptions`
+- `OpenIddictOptions` when the server feature is enabled
 
 Default values are defined in [appsettings.json](src/Raycynix.Identity.Host/appsettings.json).
 
@@ -249,7 +294,7 @@ Package-specific documentation:
 - [Abstractions README](src/Raycynix.Identity.Abstractions/README.md)
 - [Abstractions changelog](src/Raycynix.Identity.Abstractions/CHANGELOG.md)
 
-The package currently inherits version `0.4.0` from `Directory.Build.props`. Host integration for claims contributors
+The package currently inherits version `0.5.0` from `Directory.Build.props`. Host integration for claims contributors
 will be added as the OAuth/OIDC principal-building pipeline is implemented.
 
 Build the package locally with:
@@ -276,6 +321,7 @@ dotnet test Raycynix.Identity.sln
 
 - .NET 10 and ASP.NET Core
 - ASP.NET Core Identity
+- OpenIddict
 - Entity Framework Core
 - PostgreSQL
 - .NET Aspire

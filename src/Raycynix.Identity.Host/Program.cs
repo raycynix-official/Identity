@@ -25,6 +25,7 @@ builder.Host.UseRaycynixLogging();
 builder.AddRaycynixAspNetCoreConfiguration();
 
 builder.Services.AddServices(builder.Configuration);
+builder.Services.AddRaycynixOpenIddict(builder.Configuration, builder.Environment);
 
 builder.Services.AddSwaggerGen(options => { options.SwaggerDoc("v1", new() { Title = "Auth API", Version = "v1" }); });
 
