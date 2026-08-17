@@ -582,12 +582,18 @@ public class AuthService(
 
     private string CreatePublicUrl(string configuredUrl)
     {
+        if (configuredUrl.StartsWith("/", StringComparison.Ordinal) &&
+            !configuredUrl.StartsWith("//", StringComparison.Ordinal))
+        {
+            return $"{GetRequiredAuthority()}/{configuredUrl.TrimStart('/')}";
+        }
+
         if (Uri.TryCreate(configuredUrl, UriKind.Absolute, out var absoluteUri))
         {
             return absoluteUri.ToString();
         }
 
-        return $"{GetRequiredAuthority()}/{configuredUrl.TrimStart('/')}";
+        throw new InvalidOperationException("Reset password page URL must be absolute or root-relative");
     }
 
     private string CreateEndpointUrl(string route)

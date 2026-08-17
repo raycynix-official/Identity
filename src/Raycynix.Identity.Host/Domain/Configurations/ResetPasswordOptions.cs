@@ -31,6 +31,12 @@ public class ResetPasswordOptions
             throw new InvalidOperationException("Reset password page URL is required");
         }
 
+        if (PageUrl.StartsWith("/", StringComparison.Ordinal) &&
+            !PageUrl.StartsWith("//", StringComparison.Ordinal))
+        {
+            return;
+        }
+
         if (Uri.TryCreate(PageUrl, UriKind.Absolute, out var absoluteUri))
         {
             if (!string.Equals(absoluteUri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) &&
@@ -42,9 +48,6 @@ public class ResetPasswordOptions
             return;
         }
 
-        if (!PageUrl.StartsWith("/", StringComparison.Ordinal) || PageUrl.StartsWith("//", StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException("Reset password page URL must be absolute or root-relative");
-        }
+        throw new InvalidOperationException("Reset password page URL must be absolute or root-relative");
     }
 }
