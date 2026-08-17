@@ -14,7 +14,7 @@ using Raycynix.Extensions.Database.AspNetCore;
 using Raycynix.Extensions.Exceptions.AspNetCore;
 using Raycynix.Extensions.Logging;
 using Raycynix.Extensions.Security.AspNetCore;
-using Raycynix.Extensions.Security.Configurations;
+using Raycynix.Extensions.Security.Options;
 using Raycynix.Identity.Host.Domain.Configurations;
 using Raycynix.Identity.Host.Web.Extensions;
 
@@ -30,7 +30,7 @@ builder.Services.AddSwaggerGen(options => { options.SwaggerDoc("v1", new() { Tit
 
 builder.Services.AddControllers();
 
-var jwtSettings = builder.Configuration.GetSection("SecurityConfiguration:Jwt").Get<JwtConfiguration>();
+var jwtSettings = builder.Configuration.GetSection("SecurityConfiguration:Jwt").Get<JwtOptions>();
 if (jwtSettings is null) throw new InvalidOperationException("JWT Configuration not found");
 
 var jwtSecret = builder.Configuration["SecurityConfiguration:Jwt:Secret"];

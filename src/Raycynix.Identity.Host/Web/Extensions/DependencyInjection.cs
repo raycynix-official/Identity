@@ -16,7 +16,7 @@ using Raycynix.Extensions.Exceptions;
 using Raycynix.Extensions.Logging;
 using Raycynix.Extensions.Secrets;
 using Raycynix.Extensions.Security.AspNetCore;
-using Raycynix.Extensions.Security.Configurations;
+using Raycynix.Extensions.Security.Options;
 using Raycynix.Identity.Host.Application.Interfaces;
 using Raycynix.Identity.Host.Domain.Configurations;
 using Raycynix.Identity.Host.Domain.Configurations.BackgroundServices;
@@ -72,14 +72,14 @@ public static class DependencyInjection
 
             services.AddRaycynixLogging();
             services.AddRaycynixEmail(configuration).AddSmtp();
-            services.Configure<JwtConfiguration>(configuration.GetSection("SecurityConfiguration:Jwt"));
+            services.Configure<JwtOptions>(configuration.GetSection("SecurityConfiguration:Jwt"));
 
             services
                 .AddRaycynixIdentityDatabase<
                     RaycynixIdentityDatabaseContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim,
                         UserToken>
                 >(configuration).AddPostgreSql();
-            services.AddRaycynixSecrets();
+            services.AddRaycynixSecrets(configuration);
             services.AddRaycynixAspNetCoreSecurity(configuration);
 
             services.AddIdentity<User, Role>(

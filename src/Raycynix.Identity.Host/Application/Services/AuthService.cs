@@ -15,9 +15,9 @@ using Raycynix.Extensions.Email.Abstractions.Interfaces;
 using Raycynix.Extensions.Email.Abstractions.Models;
 using Raycynix.Extensions.Exceptions;
 using Raycynix.Extensions.Security.Abstractions.Interfaces;
-using Raycynix.Extensions.Security.Configurations;
 using System.Net;
 using System.Text;
+using Raycynix.Extensions.Security.Options;
 using Raycynix.Identity.Host.Application.Extensions;
 using Raycynix.Identity.Host.Application.Interfaces;
 using Raycynix.Identity.Host.Application.Models;
@@ -43,7 +43,7 @@ namespace Raycynix.Identity.Host.Application.Services;
 public class AuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
-    IOptions<JwtConfiguration> jwtSettings,
+    IOptions<JwtOptions> jwtSettings,
     ISecretResolver secretResolver,
     RaycynixIdentityDatabaseContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>
         databaseContext,

@@ -11,7 +11,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Raycynix.Extensions.Security.Abstractions.Interfaces;
-using Raycynix.Extensions.Security.Configurations;
+using Raycynix.Extensions.Security.Options;
 using Raycynix.Identity.Host.Domain.Entities.Identity;
 
 namespace Raycynix.Identity.Host.Application.Extensions;
@@ -29,7 +29,7 @@ public static class SecurityExtensions
         /// <param name="jwtSettings">The JWT issuer, audience, and lifetime settings.</param>
         /// <param name="secretResolver">The resolver used to read the JWT signing secret.</param>
         /// <returns>The generated JWT access token.</returns>
-        public async Task<JwtSecurityToken> GenerateTokenAsync(JwtConfiguration jwtSettings,
+        public async Task<JwtSecurityToken> GenerateTokenAsync(JwtOptions jwtSettings,
             ISecretResolver secretResolver)
         {
             return await user.GenerateTokenAsync(secretResolver, jwtSettings);
@@ -42,7 +42,7 @@ public static class SecurityExtensions
         /// <param name="jwtSettings">The JWT issuer, audience, and lifetime settings.</param>
         /// <returns>The generated JWT access token.</returns>
         public async Task<JwtSecurityToken> GenerateTokenAsync(ISecretResolver secretResolver,
-            JwtConfiguration jwtSettings)
+            JwtOptions jwtSettings)
         {
             var key = await secretResolver.GetSecurityKey();
             var credits = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -72,7 +72,7 @@ public static class SecurityExtensions
         /// <param name="jwtSettings">The JWT settings that define the refresh-token lifetime.</param>
         /// <returns>The refresh-token entity with the token hash and expiration date set.</returns>
         public UserRefreshToken GenerateUserRefreshToken(string tokenHash,
-            JwtConfiguration jwtSettings)
+            JwtOptions jwtSettings)
         {
             var token = new UserRefreshToken
             {
@@ -93,7 +93,7 @@ public static class SecurityExtensions
     /// <param name="jwtSettings">The JWT settings that define the refresh-token lifetime.</param>
     /// <returns>The refresh-token entity with the token hash and expiration date set.</returns>
     public static UserRefreshToken GenerateUserRefreshToken(Guid userId, string tokenHash,
-        JwtConfiguration jwtSettings)
+        JwtOptions jwtSettings)
     {
         var token = new UserRefreshToken
         {

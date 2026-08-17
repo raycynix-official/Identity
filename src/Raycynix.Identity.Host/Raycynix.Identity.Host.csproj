@@ -21,17 +21,17 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Raycynix.Extensions.Configuration.AspNetCore" Version="2.2.0"/>
-        <PackageReference Include="Raycynix.Extensions.Database" Version="2.2.0"/>
-        <PackageReference Include="Raycynix.Extensions.Database.AspNetCore" Version="2.2.0"/>
-        <PackageReference Include="Raycynix.Extensions.Database.AspNetCore.Identity" Version="2.2.0"/>
-        <PackageReference Include="Raycynix.Extensions.Database.PostgreSql" Version="2.2.0"/>
-        <PackageReference Include="Raycynix.Extensions.Email.Smtp" Version="2.2.0"/>
-        <PackageReference Include="Raycynix.Extensions.Exceptions.AspNetCore" Version="2.2.0"/>
+        <PackageReference Include="Raycynix.Extensions.Configuration.AspNetCore" Version="3.0.0" />
+        <PackageReference Include="Raycynix.Extensions.Database" Version="3.0.0" />
+        <PackageReference Include="Raycynix.Extensions.Database.AspNetCore" Version="3.0.0" />
+        <PackageReference Include="Raycynix.Extensions.Database.AspNetCore.Identity" Version="3.0.0" />
+        <PackageReference Include="Raycynix.Extensions.Database.PostgreSql" Version="3.0.0" />
+        <PackageReference Include="Raycynix.Extensions.Email.Smtp" Version="3.0.0" />
+        <PackageReference Include="Raycynix.Extensions.Exceptions.AspNetCore" Version="3.0.0" />
         <PackageReference Include="Raycynix.Extensions.Logging" Version="2.2.0"/>
-        <PackageReference Include="Raycynix.Extensions.Observability.AspNetCore" Version="2.2.0"/>
-        <PackageReference Include="Raycynix.Extensions.Secrets" Version="2.2.0"/>
-        <PackageReference Include="Raycynix.Extensions.Security.AspNetCore" Version="2.2.0"/>
+        <PackageReference Include="Raycynix.Extensions.Observability.AspNetCore" Version="3.0.0" />
+        <PackageReference Include="Raycynix.Extensions.Secrets" Version="3.0.0" />
+        <PackageReference Include="Raycynix.Extensions.Security.AspNetCore" Version="3.0.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3"/>
     </ItemGroup>
 
