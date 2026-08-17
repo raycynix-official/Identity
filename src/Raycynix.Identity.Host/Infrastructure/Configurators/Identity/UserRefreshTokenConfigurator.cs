@@ -51,7 +51,9 @@ public class UserRefreshTokenConfigurator : GenericConfigurator<UserRefreshToken
         entity.Property(x => x.LastUsedAt).IsRequired(false);
         entity.Property(x => x.ExpiresAt).IsRequired();
         
-        entity.Property(x => x.RevokedAt).IsRequired(false);
+        entity.Property(x => x.RevokedAt)
+            .IsRequired(false)
+            .IsConcurrencyToken();
         entity.Property(x => x.ReplacedByTokenHash).IsRequired(false);
         entity.Property(x => x.RevokedByTokenHash).IsRequired(false);
         entity.Property(x => x.RevocationReason)

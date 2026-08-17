@@ -40,14 +40,11 @@ public interface IAuthService
     Task<AuthResult> LoginAsync(LoginRequest request, string? refreshToken = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Sends a new email confirmation link to an existing unconfirmed user.
+    /// Sends a new email confirmation link when the request matches an existing unconfirmed user.
     /// </summary>
     /// <param name="request">The email address that identifies the user.</param>
     /// <param name="cancellationToken">A token used to cancel the operation.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is <see langword="null"/>.</exception>
-    /// <exception cref="Raycynix.Extensions.Exceptions.UnauthorizedException">
-    /// Thrown when the user does not exist or the email address is already confirmed.
-    /// </exception>
     Task SendEmailConfirmationLinkAsync(EmailConfirmationLinkRequest request,
         CancellationToken cancellationToken = default);
 

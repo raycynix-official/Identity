@@ -23,4 +23,32 @@ public class ResetPasswordOptionsTests
 
         Assert.Throws<InvalidOperationException>(configuration.Validate);
     }
+
+    [TestCase("")]
+    [TestCase(" ")]
+    [TestCase("reset-password")]
+    [TestCase("//attacker.example/reset-password")]
+    [TestCase("javascript:alert(1)")]
+    public void Validate_WhenPageUrlIsInvalid_Throws(string pageUrl)
+    {
+        var configuration = new ResetPasswordOptions
+        {
+            PageUrl = pageUrl
+        };
+
+        Assert.Throws<InvalidOperationException>(configuration.Validate);
+    }
+
+    [TestCase("/reset-password")]
+    [TestCase("https://accounts.example.com/reset-password")]
+    [TestCase("http://localhost:3000/reset-password")]
+    public void Validate_WhenPageUrlIsValid_DoesNotThrow(string pageUrl)
+    {
+        var configuration = new ResetPasswordOptions
+        {
+            PageUrl = pageUrl
+        };
+
+        Assert.DoesNotThrow(configuration.Validate);
+    }
 }
